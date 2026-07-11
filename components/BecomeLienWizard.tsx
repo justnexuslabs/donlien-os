@@ -17,6 +17,7 @@ export function BecomeLienWizard() {
   const [humanName, setHumanName] = useState("");
   const [role, setRole] = useState<(typeof roles)[number]>("Builder");
   const [portrait, setPortrait] = useState<File | null>(null);
+  const [portraitPreview, setPortraitPreview] = useState("");
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const lienName = useMemo(() => makeLienName(humanName || "New"), [humanName]);
@@ -34,12 +35,30 @@ export function BecomeLienWizard() {
     const response = await fetch("/api/transform", { method: "POST", body: form });
     const payload = await response.json();
     if (!response.ok) {
+      if (payload.lienId && payload.lienName && portraitPreview) {
+        setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: portraitPreview });
+        setStep(3);
+        setStatus(`${payload.error || "Live AI transform is not configured yet."} Demo review is using your uploaded portrait preview.`);
+        return;
+      }
       setStatus(payload.error || "Transform unavailable.");
       return;
     }
     setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: payload.imageDataUrl });
     setStep(3);
     setStatus("Review your LIEN identity.");
+  }
+
+  function updatePortrait(file: File | null) {
+    setPortrait(file);
+    setStatus("");
+    if (!file) {
+      setPortraitPreview("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPortraitPreview(typeof reader.result === "string" ? reader.result : "");
+    reader.readAsDataURL(file);
   }
 
   async function saveIdentity() {
@@ -100,11 +119,35 @@ export function BecomeLienWizard() {
         <HudPanel title="LIENification" accent="#39FF14">
           <label className="grid gap-2">
             <span className="font-display uppercase">Portrait upload</span>
-            <input className="border border-lime-400/30 bg-black/70 p-3" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setPortrait(event.target.files?.[0] || null)} />
+            <input className="border border-lime-400/30 bg-black/70 p-3" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => updatePortrait(event.target.files?.[0] || null)} />
           </label>
+          {portraitPreview ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-[160px_1fr]">
+              <div className="alien-core aspect-[4/5] overflow-hidden border border-lime-300/40">
+                {/* Local preview data URL; not uploaded or optimized. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={portraitPreview} alt="Portrait preview" className="h-full w-full object-cover" />
+              </div>
+              <p className="self-center text-sm leading-6 text-zinc-200">
+                In demo mode this portrait can continue into review. Live LIENification activates once `OPENAI_API_KEY` is configured.
+              </p>
+            </div>
+          ) : null}
           <button className="clip-hud mt-5 inline-flex items-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={transform}>
             <Sparkles size={18} /> Transform
           </button>
+          {portraitPreview ? (
+            <button
+              className="clip-hud ml-0 mt-3 inline-flex items-center gap-2 border border-white/30 px-5 py-3 font-display uppercase text-white sm:ml-3"
+              onClick={() => {
+                setResult({ lienId: `LIEN-${Date.now().toString(36).toUpperCase()}`, lienName, imageDataUrl: portraitPreview });
+                setStep(3);
+                setStatus("Demo review created from your uploaded portrait preview. Live AI transform requires OpenAI credentials.");
+              }}
+            >
+              Use Demo Preview
+            </button>
+          ) : null}
         </HudPanel>
       ) : null}
       {step === 3 ? (
