@@ -1,4 +1,5 @@
 import { HologramGlobe } from "@/components/HologramGlobe";
+import { DonLienPortrait } from "@/components/DonLienPortrait";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { liveFeeds, missionStats, objectives, pageImages } from "@/lib/content";
@@ -33,6 +34,13 @@ export default function MissionControlPage() {
             <p className="font-display text-cyan-300">COMMAND STRATEGIST</p>
             <h1 className="font-display text-5xl font-black uppercase md:text-7xl">Mission Control</h1>
           </div>
+          <DonLienPortrait
+            src={pageImages.mission}
+            role="Command Strategist"
+            outfit="Black orbital commander uniform with cyan DONLIEN tie"
+            accent="#35ECFF"
+            objectPosition="48% 36%"
+          />
           <HologramGlobe accent="#35ECFF" />
         </div>
         <div className="grid gap-4">

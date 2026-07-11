@@ -1,3 +1,4 @@
+import { DonLienPortrait } from "@/components/DonLienPortrait";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { archiveCategories, archiveRecords, pageImages } from "@/lib/content";
@@ -21,6 +22,14 @@ export default function ArchivePage() {
           <p className="font-display text-amber-200">ARCHIVIST</p>
           <h1 className="font-display text-6xl font-black uppercase md:text-8xl">Archive Level 51</h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8">Cold-storage records, recovered artifacts, government files, and Genesis lore.</p>
+          <DonLienPortrait
+            src={pageImages.archive}
+            role="Level 51 Archivist"
+            outfit="Black archive officer uniform with green DONLIEN tie"
+            accent="#D2A95D"
+            objectPosition="50% 36%"
+            className="mt-6"
+          />
         </div>
         <div className="grid gap-4">
           <HudPanel title="Archive Categories" accent="#D2A95D">

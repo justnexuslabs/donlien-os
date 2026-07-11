@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DonLienPortrait } from "@/components/DonLienPortrait";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { embassyCards, pageImages, pillars } from "@/lib/content";
@@ -22,6 +23,14 @@ export default function LienityPage() {
           <p className="font-display text-lime-300">DIPLOMAT</p>
           <h1 className="font-display text-7xl font-black uppercase text-yellow-200 md:text-9xl">LIENITY</h1>
           <p className="font-display text-2xl uppercase">Together, we build the LIENIVERSE</p>
+          <DonLienPortrait
+            src={pageImages.lienity}
+            role="LIENITY Diplomat"
+            outfit="White diplomatic suit with green glowing DONLIEN tie"
+            accent="#39FF14"
+            objectPosition="49% 37%"
+            className="mt-6"
+          />
           <Link href="/become-a-lien" className="clip-hud mx-auto mt-8 border border-lime-300 px-6 py-4 font-display font-bold uppercase text-lime-200">
             Become a LIEN
           </Link>
