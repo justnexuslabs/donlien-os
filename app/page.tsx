@@ -1,166 +1,65 @@
-import {
-  ArrowUpRight,
-  CircleDotDashed,
-  Cpu,
-  Diamond,
-  Layers3,
-  LockKeyhole,
-  Network,
-  Orbit,
-  ShieldCheck,
-  Sparkles,
-  WalletCards,
-} from "lucide-react";
-
-const modules = [
-  {
-    icon: Network,
-    title: "Lieniverse",
-    copy: "A persistent world layer for drops, identity, lore, access, and community motion.",
-  },
-  {
-    icon: WalletCards,
-    title: "Genesis Protocol",
-    copy: "Collection infrastructure for releases that need story, scarcity, metadata, and proof.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Trust Mesh",
-    copy: "Signals for provenance, ownership, role permissions, and authenticated experiences.",
-  },
-  {
-    icon: Cpu,
-    title: "Operator Console",
-    copy: "A command surface for publishing, coordinating, and evolving DonLien systems.",
-  },
-];
-
-const phases = ["Signal", "Mint", "Activate", "Evolve"];
+import Link from "next/link";
+import { HudPanel } from "@/components/HudPanel";
+import { PageFrame } from "@/components/PageFrame";
+import { homeValues, pageImages } from "@/lib/content";
 
 export default function Home() {
   return (
-    <main>
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="DonLien OS home">
-          <span className="brand-mark">
-            <Diamond size={18} strokeWidth={2.6} />
-          </span>
-          <span>DonLien OS</span>
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="#protocol">Protocol</a>
-          <a href="#modules">Modules</a>
-          <a href="#roadmap">Roadmap</a>
-        </nav>
-      </header>
-
-      <section className="hero" id="top">
-        <div className="hero-art" aria-hidden="true">
-          <div className="grid-plane" />
-          <div className="core-ring ring-one" />
-          <div className="core-ring ring-two" />
-          <div className="core-ring ring-three" />
-          <div className="sigil">
-            <Orbit size={74} strokeWidth={1.2} />
-            <span>DL</span>
-          </div>
-          <div className="node node-a" />
-          <div className="node node-b" />
-          <div className="node node-c" />
-          <div className="node node-d" />
-        </div>
-
-        <div className="hero-copy">
-          <p className="eyebrow">Main branch online</p>
-          <h1>DonLien OS</h1>
-          <p className="lede">
-            The operating layer for DonLien worlds, Genesis releases, identity
-            gates, and the systems that hold the Lieniverse together.
+    <PageFrame image={pageImages.home}>
+      <section className="mx-auto grid min-h-[calc(100vh-6rem)] max-w-[1600px] items-center gap-8 px-4 pb-8 md:px-8 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="order-1 max-w-3xl xl:order-none">
+          <p className="font-display text-2xl font-black uppercase tracking-[0.08em] text-lime-300">Welcome to the</p>
+          <h1 className="font-display mt-1 text-6xl font-black uppercase leading-[0.86] tracking-wide text-zinc-100 md:text-8xl xl:text-9xl">
+            LIENIVERSE
+          </h1>
+          <p className="font-display mt-5 text-2xl font-bold uppercase tracking-[0.08em] text-lime-300">
+            UNITING CIVILIZATIONS. BUILDING LEGACIES.
           </p>
-          <div className="hero-actions">
-            <a className="button primary" href="#protocol">
-              <Sparkles size={18} />
-              Enter Protocol
-            </a>
-            <a className="button secondary" href="#modules">
-              <ArrowUpRight size={18} />
-              View Modules
-            </a>
+          <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-100">
+            From beyond the stars, we didn&apos;t come to conquer. We came to connect. Together, we build the LIENIVERSE.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/mission-control" className="clip-hud border border-lime-400 bg-lime-400/10 px-6 py-4 font-display font-bold uppercase text-lime-200">
+              Enter the LIENIVERSE
+            </Link>
+            <Link href="/become-a-lien" className="clip-hud border border-white/30 px-6 py-4 font-display font-bold uppercase text-white">
+              Become a LIEN
+            </Link>
+          </div>
+        </div>
+        <div className="order-2 grid gap-4 xl:order-none xl:self-end">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+            <HudPanel title="Global Network" accent="#39FF14">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="font-display text-4xl font-black">Demo 51</p>
+                  <p className="text-sm uppercase text-lime-200">Node simulation</p>
+                </div>
+                <div>
+                  <p className="font-display text-4xl font-black">87</p>
+                  <p className="text-sm uppercase text-lime-200">Embassy regions placeholder</p>
+                </div>
+              </div>
+            </HudPanel>
+            <HudPanel title="The Mission" accent="#39FF14">
+              <p className="leading-7 text-zinc-200">
+                Building a decentralized future where every species, every mind, and every dream has a place to thrive.
+              </p>
+            </HudPanel>
           </div>
         </div>
       </section>
-
-      <section className="protocol" id="protocol">
-        <div className="section-heading">
-          <p className="eyebrow">Genesis stack</p>
-          <h2>Built as a living command system.</h2>
-        </div>
-        <div className="protocol-console">
-          <div className="console-top">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="console-body">
-            <p>
-              <span>system.boot</span> DonLien OS initialized on main
-            </p>
-            <p>
-              <span>world.load</span> LIENIVERSE nodes synchronized
-            </p>
-            <p>
-              <span>genesis.prepare</span> collection pipeline armed
-            </p>
-            <p>
-              <span>access.map</span> identity gates and roles detected
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="modules" id="modules">
-        <div className="section-heading">
-          <p className="eyebrow">Core modules</p>
-          <h2>Four surfaces, one world layer.</h2>
-        </div>
-        <div className="module-grid">
-          {modules.map((module) => {
-            const Icon = module.icon;
-            return (
-              <article className="module-card" key={module.title}>
-                <Icon size={26} strokeWidth={1.8} />
-                <h3>{module.title}</h3>
-                <p>{module.copy}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="roadmap" id="roadmap">
-        <div className="section-heading">
-          <p className="eyebrow">Release rhythm</p>
-          <h2>From signal to evolving world.</h2>
-        </div>
-        <div className="phase-row">
-          {phases.map((phase, index) => (
-            <div className="phase" key={phase}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{phase}</strong>
+      <section className="mx-auto grid max-w-[1500px] gap-3 px-4 pb-8 md:grid-cols-4 md:px-8">
+        {homeValues.map((value) => {
+          const Icon = value.icon;
+          return (
+            <div className="hud-panel clip-hud flex items-center gap-3 p-4" key={value.title}>
+              <Icon className="text-lime-300" />
+              <span className="font-display font-bold uppercase">{value.title}</span>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </section>
-
-      <footer>
-        <div>
-          <CircleDotDashed size={20} />
-          <span>DonLien OS</span>
-        </div>
-        <a href="https://github.com/justnexuslabs/donlien-os">
-          justnexuslabs/donlien-os
-        </a>
-      </footer>
-    </main>
+    </PageFrame>
   );
 }

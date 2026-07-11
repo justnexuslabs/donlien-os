@@ -1,0 +1,154 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Download, Share2, Sparkles } from "lucide-react";
+import { HudPanel } from "./HudPanel";
+import { makeLienName } from "@/lib/naming";
+import { roles } from "@/lib/content";
+
+type Result = {
+  lienId: string;
+  lienName: string;
+  imageDataUrl?: string;
+};
+
+export function BecomeLienWizard() {
+  const [step, setStep] = useState(1);
+  const [humanName, setHumanName] = useState("");
+  const [role, setRole] = useState<(typeof roles)[number]>("Builder");
+  const [portrait, setPortrait] = useState<File | null>(null);
+  const [status, setStatus] = useState("");
+  const [result, setResult] = useState<Result | null>(null);
+  const lienName = useMemo(() => makeLienName(humanName || "New"), [humanName]);
+
+  async function transform() {
+    if (!portrait) {
+      setStatus("Upload a JPG, PNG, or WEBP portrait first.");
+      return;
+    }
+    setStatus("LIENification in progress.");
+    const form = new FormData();
+    form.set("humanName", humanName);
+    form.set("role", role);
+    form.set("portrait", portrait);
+    const response = await fetch("/api/transform", { method: "POST", body: form });
+    const payload = await response.json();
+    if (!response.ok) {
+      setStatus(payload.error || "Transform unavailable.");
+      return;
+    }
+    setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: payload.imageDataUrl });
+    setStep(3);
+    setStatus("Review your LIEN identity.");
+  }
+
+  async function saveIdentity() {
+    const response = await fetch("/api/liens", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        humanName,
+        lienName: result?.lienName || lienName,
+        role,
+        portraitDataUrl: result?.imageDataUrl,
+        genesisStatus: "candidate",
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      setStatus(payload.error || "Could not save identity.");
+      return;
+    }
+    setResult((current) => ({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: current?.imageDataUrl }));
+    setStep(4);
+    setStatus("Identity activation ready.");
+  }
+
+  return (
+    <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 md:px-8">
+      <div className="text-center">
+        <p className="font-display text-lime-300">LEVEL 51 INTAKE</p>
+        <h1 className="font-display text-5xl font-black uppercase md:text-7xl">Become a LIEN</h1>
+      </div>
+      <div className="grid gap-3 md:grid-cols-4">
+        {["Human Input", "LIENification", "Review", "Activation"].map((label, index) => (
+          <div className={`hud-panel clip-hud p-3 text-center font-display uppercase ${step === index + 1 ? "text-lime-300" : "text-zinc-400"}`} key={label}>
+            {index + 1}. {label}
+          </div>
+        ))}
+      </div>
+      {step === 1 ? (
+        <HudPanel title="Human Input" accent="#39FF14">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="font-display uppercase">Human name</span>
+              <input className="border border-lime-400/30 bg-black/70 p-3" value={humanName} onChange={(event) => setHumanName(event.target.value)} maxLength={80} />
+            </label>
+            <label className="grid gap-2">
+              <span className="font-display uppercase">Role</span>
+              <select className="border border-lime-400/30 bg-black/70 p-3" value={role} onChange={(event) => setRole(event.target.value as (typeof roles)[number])}>
+                {roles.map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+          </div>
+          <button className="clip-hud mt-5 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={() => setStep(2)} disabled={!humanName.trim()}>
+            Continue
+          </button>
+        </HudPanel>
+      ) : null}
+      {step === 2 ? (
+        <HudPanel title="LIENification" accent="#39FF14">
+          <label className="grid gap-2">
+            <span className="font-display uppercase">Portrait upload</span>
+            <input className="border border-lime-400/30 bg-black/70 p-3" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setPortrait(event.target.files?.[0] || null)} />
+          </label>
+          <button className="clip-hud mt-5 inline-flex items-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={transform}>
+            <Sparkles size={18} /> Transform
+          </button>
+        </HudPanel>
+      ) : null}
+      {step === 3 ? (
+        <HudPanel title="Review" accent="#39FF14">
+          <div className="grid gap-5 md:grid-cols-[280px_1fr]">
+            <div className="alien-core grid aspect-[4/5] place-items-center overflow-hidden border border-lime-300/40">
+              {result?.imageDataUrl ? (
+                // Data URLs returned by the protected transform route cannot be optimized by next/image.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={result.imageDataUrl} alt="Generated LIEN portrait" className="h-full w-full object-cover" />
+              ) : (
+                <span className="font-display text-5xl">DL</span>
+              )}
+            </div>
+            <div className="grid content-center gap-2">
+              <p>Human designation: {humanName}</p>
+              <p>LIEN designation: {result?.lienName || lienName}</p>
+              <p>Role: {role}</p>
+              <p>Level 51</p>
+              <p>Genesis Candidate</p>
+              <p>Unique ID: {result?.lienId || "Pending"}</p>
+              <button className="clip-hud mt-4 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={saveIdentity}>
+                Save Identity
+              </button>
+            </div>
+          </div>
+        </HudPanel>
+      ) : null}
+      {step === 4 ? (
+        <HudPanel title="Activation" accent="#39FF14">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <a className="clip-hud inline-flex items-center justify-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href={result?.imageDataUrl || "#"} download="donlien-id.png">
+              <Download size={18} /> Download ID
+            </a>
+            <a className="clip-hud inline-flex items-center justify-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I joined the LIENIVERSE as ${result?.lienName || lienName}.`)}`} target="_blank" rel="noreferrer">
+              <Share2 size={18} /> Share to X
+            </a>
+            <a className="clip-hud inline-flex items-center justify-center border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href="/lienity">
+              Join LIENITY
+            </a>
+          </div>
+        </HudPanel>
+      ) : null}
+      {status ? <p className="hud-panel clip-hud p-4 text-sm text-lime-100" aria-live="polite">{status}</p> : null}
+    </section>
+  );
+}

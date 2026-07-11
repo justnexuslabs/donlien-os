@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DonLien OS",
-  description: "The operating layer for the Lieniverse.",
+  title: "DONLIEN.XYZ",
+  description: "The classified alien operating system for the LIENIVERSE.",
 };
 
 export default function RootLayout({
