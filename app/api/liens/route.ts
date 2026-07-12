@@ -9,6 +9,7 @@ import {
   rateLimit,
 } from "@/lib/security";
 import { sanitizeUserText } from "@/lib/naming";
+import { notifyLienWebhook } from "@/lib/webhook";
 
 export const runtime = "nodejs";
 
@@ -36,6 +37,10 @@ export async function POST(request: Request) {
     portrait_data_url: null,
     genesis_status: parsed.data.genesisStatus,
     x_post_url: parsed.data.xPostUrl || null,
+    signup_stage: "activation",
+    signup_completed: true,
+    last_activity_at: new Date().toISOString(),
+    webhook_status: "not_sent",
   };
 
   const supabase = getSupabaseAdmin();
@@ -55,20 +60,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unable to save LIEN identity." }, { status: 500 });
   }
 
-  if (process.env.NEW_LIEN_WEBHOOK_URL) {
-    try {
-      await fetch(process.env.NEW_LIEN_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lienId, role: record.role, genesisStatus: record.genesis_status }),
-      });
-    } catch {
-      logEvent("lien_webhook_failed", { lienId });
-    }
-  }
+  const webhookStatus = await notifyLienWebhook({
+    event: "lien_saved",
+    lienId,
+    lienName: record.lien_name,
+    role: record.role,
+    genesisStatus: record.genesis_status,
+  });
+  await supabase.from("liens").update({ webhook_status: webhookStatus }).eq("lien_id", lienId);
 
-  logEvent("lien_saved", { role: record.role, lienId });
-  return NextResponse.json({ saved: true, lienId, lienName: record.lien_name });
+  logEvent("lien_saved", { role: record.role, lienId, webhookStatus });
+  return NextResponse.json({ saved: true, lienId, lienName: record.lien_name, webhookStatus });
 }
 
 export async function GET() {

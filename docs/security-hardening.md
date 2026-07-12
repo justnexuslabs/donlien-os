@@ -14,6 +14,9 @@
 - User-generated text is sanitized before server persistence and rendered through React text nodes.
 - Structured logs redact keys, secrets, codes, tokens, webhook URLs, and portrait data.
 - OpenAI generation is only available through `/api/transform`, with file validation and rate limiting.
+- Signup stages are tracked through `/api/signup-events`; public users cannot read signup records.
+- Admin CSV export is protected by the same server-side admin session as the dashboard.
+- Webhook delivery happens server-side and reports only redacted status to the UI.
 - Supabase RLS is enabled in `supabase/schema.sql`; public select/insert/update/delete policies are denied.
 - Portraits are not written to unrestricted public storage. Production portrait storage must use a private Supabase Storage bucket with signed access.
 
@@ -24,4 +27,5 @@
 - Private Supabase Storage bucket and signed URL flow must be provisioned before storing portraits.
 - Admin access code is an acceptable minimum only if it is long and random; a real identity provider should replace it before broader operational use.
 - OpenAI spend controls should also be enforced in the OpenAI dashboard and billing limits, not only in app rate limits.
+- Signup abandonment is computed as incomplete signup activity older than 24 hours; tune this window if the funnel needs a different business definition.
 - `npm audit` and dependency review must be rerun during each production release.

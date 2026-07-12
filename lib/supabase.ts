@@ -11,6 +11,11 @@ export type LienRecord = {
   genesis_status: string;
   hedera_account_id: string | null;
   x_post_url: string | null;
+  signup_stage?: string | null;
+  signup_completed?: boolean | null;
+  last_activity_at?: string | null;
+  abandoned_at?: string | null;
+  webhook_status?: string | null;
   created_at: string;
 };
 

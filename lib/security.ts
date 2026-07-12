@@ -29,6 +29,25 @@ export const adminLoginSchema = z.object({
   accessCode: z.string().min(24).max(256),
 });
 
+export const signupStageSchema = z.enum(["human_input", "upload", "transform", "review", "activation"]);
+
+export const signupEventSchema = z.object({
+  sessionId: z.string().trim().min(8).max(128),
+  stage: signupStageSchema,
+  humanName: z.string().trim().max(80).optional(),
+  lienName: z.string().trim().max(80).optional(),
+  role: roleSchema.optional(),
+  lienId: z.string().trim().max(80).optional(),
+  completed: z.boolean().default(false),
+});
+
+export const adminLienQuerySchema = z.object({
+  role: z.string().trim().max(40).optional(),
+  status: z.string().trim().max(40).optional(),
+  from: z.string().trim().max(40).optional(),
+  to: z.string().trim().max(40).optional(),
+});
+
 export function makeLienId() {
   return `LIEN-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
@@ -89,6 +108,14 @@ export function logEvent(event: string, data: Record<string, unknown> = {}) {
     }),
   );
   console.info(JSON.stringify({ event, at: new Date().toISOString(), ...redacted }));
+}
+
+export function getSignupState(record: { signup_completed?: boolean | null; last_activity_at?: string | null }) {
+  if (record.signup_completed) return "completed";
+  if (!record.last_activity_at) return "active";
+  const lastActivity = new Date(record.last_activity_at).getTime();
+  if (!Number.isFinite(lastActivity)) return "active";
+  return Date.now() - lastActivity > 24 * 60 * 60 * 1000 ? "abandoned" : "active";
 }
 
 export function compareSecret(received: string, expected: string) {

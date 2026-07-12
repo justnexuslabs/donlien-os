@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Download, Share2, Sparkles } from "lucide-react";
 import { HudPanel } from "./HudPanel";
 import { makeLienName } from "@/lib/naming";
@@ -14,6 +14,10 @@ type Result = {
 
 export function BecomeLienWizard() {
   const [step, setStep] = useState(1);
+  const [sessionId] = useState(() => {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+    return `signup-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  });
   const [humanName, setHumanName] = useState("");
   const [role, setRole] = useState<(typeof roles)[number]>("Builder");
   const [portrait, setPortrait] = useState<File | null>(null);
@@ -21,6 +25,33 @@ export function BecomeLienWizard() {
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const lienName = useMemo(() => makeLienName(humanName || "New"), [humanName]);
+  const stage = step === 1 ? "human_input" : step === 2 ? "upload" : step === 3 ? "review" : "activation";
+
+  async function trackSignupStage(nextStage = stage, completed = false, nextResult = result) {
+    try {
+      await fetch("/api/signup-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          stage: nextStage,
+          humanName,
+          lienName: nextResult?.lienName || lienName,
+          role,
+          lienId: nextResult?.lienId,
+          completed,
+        }),
+        keepalive: true,
+      });
+    } catch {
+      // Signup tracking should never block the user-facing flow.
+    }
+  }
+
+  useEffect(() => {
+    void trackSignupStage(stage, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
 
   async function transform() {
     if (!portrait) {
@@ -28,6 +59,7 @@ export function BecomeLienWizard() {
       return;
     }
     setStatus("LIENification in progress.");
+    void trackSignupStage("transform", false);
     const form = new FormData();
     form.set("humanName", humanName);
     form.set("role", role);
@@ -78,9 +110,11 @@ export function BecomeLienWizard() {
       setStatus(payload.error || "Could not save identity.");
       return;
     }
-    setResult((current) => ({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: current?.imageDataUrl }));
+    const nextResult = { lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: result?.imageDataUrl };
+    setResult(nextResult);
     setStep(4);
-    setStatus("Identity activation ready.");
+    void trackSignupStage("activation", true, nextResult);
+    setStatus(payload.warning || `Identity activation ready. Webhook: ${payload.webhookStatus || "not configured"}.`);
   }
 
   return (
