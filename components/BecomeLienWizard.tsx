@@ -58,7 +58,7 @@ export function BecomeLienWizard() {
       setStatus("Upload a JPG, PNG, or WEBP portrait first.");
       return;
     }
-    setStatus("LIENification in progress.");
+    setStatus("Pixel LIENification in progress.");
     void trackSignupStage("transform", false);
     const form = new FormData();
     form.set("humanName", humanName);
@@ -78,7 +78,7 @@ export function BecomeLienWizard() {
     }
     setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: payload.imageDataUrl });
     setStep(3);
-    setStatus("Review your LIEN identity.");
+    setStatus("Review your pixel LIEN identity.");
   }
 
   function updatePortrait(file: File | null) {
@@ -163,7 +163,7 @@ export function BecomeLienWizard() {
                 <img src={portraitPreview} alt="Portrait preview" className="h-full w-full object-cover" />
               </div>
               <p className="self-center text-sm leading-6 text-zinc-200">
-                In demo mode this portrait can continue into review. Live LIENification activates once `OPENAI_API_KEY` is configured.
+                Live LIENification turns this portrait into a premium pixel DonLien avatar once `OPENAI_API_KEY` is configured.
               </p>
             </div>
           ) : null}
@@ -176,7 +176,7 @@ export function BecomeLienWizard() {
               onClick={() => {
                 setResult({ lienId: `LIEN-${Date.now().toString(36).toUpperCase()}`, lienName, imageDataUrl: portraitPreview });
                 setStep(3);
-                setStatus("Demo review created from your uploaded portrait preview. Live AI transform requires OpenAI credentials.");
+                setStatus("Demo review created from your uploaded portrait preview. Live pixel transform requires OpenAI credentials.");
               }}
             >
               Use Demo Preview
@@ -191,7 +191,7 @@ export function BecomeLienWizard() {
               {result?.imageDataUrl ? (
                 // Data URLs returned by the protected transform route cannot be optimized by next/image.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={result.imageDataUrl} alt="Generated LIEN portrait" className="h-full w-full object-cover" />
+                <img src={result.imageDataUrl} alt="Generated pixel LIEN avatar" className="h-full w-full object-cover [image-rendering:pixelated]" />
               ) : (
                 <span className="font-display text-5xl">DL</span>
               )}

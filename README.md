@@ -80,7 +80,7 @@ Set `NEW_LIEN_WEBHOOK_URL` to receive server-side webhook notifications for save
 
 ## Credential-Dependent Features
 
-- OpenAI LIEN image generation requires `OPENAI_API_KEY`.
+- OpenAI LIEN image generation requires `OPENAI_API_KEY`. The default visual direction is premium pixel-art DonLien avatars using `OPENAI_IMAGE_MODEL=gpt-image-1-mini` for a lower-cost first pass.
 - Persistent identity saves and signup tracking require Supabase URL and service role credentials.
 - Admin record viewing and CSV export require Supabase plus `ADMIN_ACCESS_CODE`.
 - Webhook delivery requires `NEW_LIEN_WEBHOOK_URL`.
