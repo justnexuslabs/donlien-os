@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { DonLienPortrait } from "@/components/DonLienPortrait";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { pageImages, rarity } from "@/lib/content";
@@ -23,14 +22,11 @@ export default function GenesisPage() {
           </HudPanel>
         </div>
         <div className="grid place-items-center py-10 text-center">
-          <DonLienPortrait
-            src={pageImages.genesis}
-            role="Genesis Vault Keeper"
-            outfit="Black and gold Genesis suit with gold DONLIEN tie"
-            accent="#E7BA50"
-            objectPosition="49% 35%"
-            className="mb-5"
-          />
+          <div className="hud-panel clip-hud mb-5 max-w-xl p-4" style={{ "--accent": "#E7BA50" } as CSSProperties}>
+            <p className="font-display text-xs font-bold uppercase text-yellow-200">DonLien Outfit</p>
+            <p className="font-display text-2xl font-black uppercase">Genesis Vault Keeper</p>
+            <p className="text-sm text-zinc-200">Black and gold Genesis suit with gold DONLIEN tie</p>
+          </div>
           <div className="hud-panel clip-hud max-w-xl p-8" style={{ "--accent": "#E7BA50" } as CSSProperties}>
             <p className="font-display text-yellow-200">FOUNDING LIEN BADGE</p>
             <h1 className="font-display mt-2 text-5xl font-black uppercase md:text-7xl">Genesis Vault</h1>

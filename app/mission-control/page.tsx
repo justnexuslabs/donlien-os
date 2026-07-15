@@ -1,8 +1,8 @@
 import { HologramGlobe } from "@/components/HologramGlobe";
-import { DonLienPortrait } from "@/components/DonLienPortrait";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { liveFeeds, missionStats, objectives, pageImages } from "@/lib/content";
+import type { CSSProperties } from "react";
 
 export default function MissionControlPage() {
   return (
@@ -34,13 +34,11 @@ export default function MissionControlPage() {
             <p className="font-display text-cyan-300">COMMAND STRATEGIST</p>
             <h1 className="font-display text-5xl font-black uppercase md:text-7xl">Mission Control</h1>
           </div>
-          <DonLienPortrait
-            src={pageImages.mission}
-            role="Command Strategist"
-            outfit="Black orbital commander uniform with cyan DONLIEN tie"
-            accent="#35ECFF"
-            objectPosition="48% 36%"
-          />
+          <div className="hud-panel clip-hud mx-auto max-w-xl p-4 text-center" style={{ "--accent": "#35ECFF" } as CSSProperties}>
+            <p className="font-display text-xs font-bold uppercase text-cyan-300">DonLien Outfit</p>
+            <p className="font-display text-2xl font-black uppercase">Command Strategist</p>
+            <p className="text-sm text-zinc-200">Black orbital commander uniform with cyan DONLIEN tie</p>
+          </div>
           <HologramGlobe accent="#35ECFF" />
         </div>
         <div className="grid gap-4">

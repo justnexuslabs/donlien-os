@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { DonLienPortrait } from "@/components/DonLienPortrait";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { homeValues, pageImages } from "@/lib/content";
@@ -7,7 +6,7 @@ import { homeValues, pageImages } from "@/lib/content";
 export default function Home() {
   return (
     <PageFrame image={pageImages.home}>
-      <section className="mx-auto grid min-h-[calc(100vh-6rem)] max-w-[1600px] items-center gap-8 px-4 pb-8 md:px-8 xl:grid-cols-[0.78fr_0.74fr_0.72fr]">
+      <section className="mx-auto grid min-h-[calc(100svh-6rem)] max-w-[1600px] items-end gap-8 px-4 pb-8 md:px-8 xl:grid-cols-[1fr_380px]">
         <div className="order-1 max-w-3xl xl:order-none">
           <p className="font-display text-2xl font-black uppercase tracking-[0.08em] text-lime-300">Welcome to the</p>
           <h1 className="font-display mt-1 text-6xl font-black uppercase leading-[0.86] tracking-wide text-zinc-100 md:text-8xl xl:text-9xl">
@@ -28,14 +27,12 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <DonLienPortrait
-          src={pageImages.home}
-          role="LIENIVERSE Envoy"
-          outfit="Blue presidential suit with red glowing DONLIEN tie"
-          objectPosition="48% 40%"
-          className="order-2 xl:order-none"
-        />
         <div className="order-2 grid gap-4 xl:order-none xl:self-end">
+          <div className="hud-panel clip-hud p-4">
+            <p className="font-display text-xs font-bold uppercase text-lime-300">DonLien Outfit</p>
+            <p className="font-display text-2xl font-black uppercase">LIENIVERSE Envoy</p>
+            <p className="text-sm text-zinc-200">Blue presidential suit with red glowing DONLIEN tie</p>
+          </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
             <HudPanel title="Global Network" accent="#39FF14">
               <div className="grid gap-4 sm:grid-cols-2">
