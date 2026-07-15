@@ -101,11 +101,11 @@ export const archiveRecords = [
 ];
 
 export const pageImages = {
-  home: "/images/home-reference.png",
-  mission: "/images/mission-control-reference.png",
-  genesis: "/images/genesis-reference.png",
-  lienity: "/images/lienity-reference.png",
-  archive: "/images/archive-reference.png",
+  home: "/images/hero-final.jpg",
+  mission: "/images/mission-control-final.jpg",
+  genesis: "/images/genesis-final.jpg",
+  lienity: "/images/lienity-final.jpg",
+  archive: "/images/archive-final.jpg",
 };
 
 export const securityChecklist = [

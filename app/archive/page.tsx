@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { archiveCategories, archiveRecords, pageImages } from "@/lib/content";
@@ -22,11 +21,6 @@ export default function ArchivePage() {
           <p className="font-display text-amber-200">ARCHIVIST</p>
           <h1 className="font-display text-6xl font-black uppercase md:text-8xl">Archive Level 51</h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8">Cold-storage records, recovered artifacts, government files, and Genesis lore.</p>
-          <div className="hud-panel clip-hud mx-auto mt-6 max-w-xl p-4" style={{ "--accent": "#D2A95D" } as CSSProperties}>
-            <p className="font-display text-xs font-bold uppercase text-amber-200">DonLien Outfit</p>
-            <p className="font-display text-2xl font-black uppercase">Level 51 Archivist</p>
-            <p className="text-sm text-zinc-200">Black archive officer uniform with green DONLIEN tie</p>
-          </div>
         </div>
         <div className="grid gap-4">
           <HudPanel title="Archive Categories" accent="#D2A95D">

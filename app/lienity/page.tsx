@@ -22,11 +22,6 @@ export default function LienityPage() {
           <p className="font-display text-lime-300">DIPLOMAT</p>
           <h1 className="font-display text-7xl font-black uppercase text-yellow-200 md:text-9xl">LIENITY</h1>
           <p className="font-display text-2xl uppercase">Together, we build the LIENIVERSE</p>
-          <div className="hud-panel clip-hud mx-auto mt-6 max-w-xl p-4">
-            <p className="font-display text-xs font-bold uppercase text-lime-300">DonLien Outfit</p>
-            <p className="font-display text-2xl font-black uppercase">LIENITY Diplomat</p>
-            <p className="text-sm text-zinc-200">White diplomatic suit with green glowing DONLIEN tie</p>
-          </div>
           <Link href="/become-a-lien" className="clip-hud mx-auto mt-8 border border-lime-300 px-6 py-4 font-display font-bold uppercase text-lime-200">
             Become a LIEN
           </Link>
