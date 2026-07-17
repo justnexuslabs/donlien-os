@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { DonLienBadgeIcon } from "./DonLienBadgeIcon";
 import { navItems } from "@/lib/content";
 
 export function SiteNav() {
@@ -16,7 +15,7 @@ export function SiteNav() {
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 md:px-8">
         <Link href="/" className="font-display flex items-center gap-3 text-2xl font-black tracking-wide">
           <span className="donlien-nav-badge grid size-12 place-items-center text-lime-300" aria-hidden="true">
-            <DonLienBadgeIcon className="size-11" />
+            <img className="size-11 rounded-full object-cover" src="/images/donlien-logo.png" alt="" />
           </span>
           <span>
             DONLIEN<span className="text-lime-400">.XYZ</span>

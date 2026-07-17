@@ -30,6 +30,54 @@ function getOpenAIConfig() {
   };
 }
 
+function getOpenAIErrorDetails(error: unknown) {
+  const openAIError = error as {
+    code?: string;
+    error?: { code?: string; type?: string };
+    message?: string;
+    status?: number;
+    type?: string;
+  };
+  const message = openAIError.message || "Unknown OpenAI error";
+  const code = openAIError.code || openAIError.error?.code || openAIError.type || openAIError.error?.type || "openai_error";
+  return {
+    code,
+    message,
+    status: openAIError.status,
+  };
+}
+
+function shouldRetryWithStandardImageModel(error: unknown) {
+  const details = getOpenAIErrorDetails(error);
+  const joined = `${details.code} ${details.message}`.toLowerCase();
+  return (
+    joined.includes("model") &&
+    (joined.includes("not found") ||
+      joined.includes("does not exist") ||
+      joined.includes("unsupported") ||
+      joined.includes("access"))
+  );
+}
+
+function getPublicOpenAIError(error: unknown) {
+  const details = getOpenAIErrorDetails(error);
+  const joined = `${details.code} ${details.message}`.toLowerCase();
+
+  if (details.status === 401 || joined.includes("invalid_api_key") || joined.includes("incorrect api key")) {
+    return "OpenAI rejected the API key. Create a fresh key and set it as OPENAI_API_KEY in Netlify production.";
+  }
+
+  if (details.status === 429 || joined.includes("quota") || joined.includes("billing") || joined.includes("insufficient")) {
+    return "OpenAI rejected the request for quota or billing. Check credits, spend limit, and project billing.";
+  }
+
+  if (joined.includes("model")) {
+    return "OpenAI rejected the image model. Use OPENAI_IMAGE_MODEL=gpt-image-1-mini or gpt-image-1.";
+  }
+
+  return "OpenAI image generation failed. Check the API key, billing, and image model env settings.";
+}
+
 export async function POST(request: Request) {
   if (!(await assertSameOrigin())) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
@@ -94,26 +142,63 @@ export async function POST(request: Request) {
   });
 
   let image;
+  let modelUsed = openAIConfig.model;
   try {
     image = await client.images.edit({
-      model: openAIConfig.model,
+      model: modelUsed,
       image: file,
       prompt,
       size: "1024x1024",
     });
   } catch (error) {
-    logEvent("transform_openai_error", {
-      role: parsed.data.role,
-      message: error instanceof Error ? error.message.slice(0, 160) : "Unknown OpenAI error",
-    });
-    return NextResponse.json(
-      {
-        error: "OpenAI image generation failed. Check the API key, billing, and image model env settings.",
-        lienId: makeLienId(),
-        lienName: makeLienName(parsed.data.humanName),
-      },
-      { status: 502 },
-    );
+    if (modelUsed !== "gpt-image-1" && shouldRetryWithStandardImageModel(error)) {
+      logEvent("transform_openai_model_retry", {
+        role: parsed.data.role,
+        fromModel: modelUsed,
+        toModel: "gpt-image-1",
+      });
+      try {
+        modelUsed = "gpt-image-1";
+        image = await client.images.edit({
+          model: modelUsed,
+          image: file,
+          prompt,
+          size: "1024x1024",
+        });
+      } catch (retryError) {
+        const details = getOpenAIErrorDetails(retryError);
+        logEvent("transform_openai_error", {
+          role: parsed.data.role,
+          code: details.code,
+          status: details.status,
+          message: details.message.slice(0, 160),
+        });
+        return NextResponse.json(
+          {
+            error: getPublicOpenAIError(retryError),
+            lienId: makeLienId(),
+            lienName: makeLienName(parsed.data.humanName),
+          },
+          { status: 502 },
+        );
+      }
+    } else {
+      const details = getOpenAIErrorDetails(error);
+      logEvent("transform_openai_error", {
+        role: parsed.data.role,
+        code: details.code,
+        status: details.status,
+        message: details.message.slice(0, 160),
+      });
+      return NextResponse.json(
+        {
+          error: getPublicOpenAIError(error),
+          lienId: makeLienId(),
+          lienName: makeLienName(parsed.data.humanName),
+        },
+        { status: 502 },
+      );
+    }
   }
 
   const b64 = image.data?.[0]?.b64_json;
@@ -121,7 +206,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image generation did not return image data." }, { status: 502 });
   }
 
-  logEvent("transform_complete", { role: parsed.data.role, bytes: portrait.size });
+  logEvent("transform_complete", { role: parsed.data.role, bytes: portrait.size, model: modelUsed });
   return NextResponse.json({
     lienId: makeLienId(),
     lienName: makeLienName(parsed.data.humanName),
