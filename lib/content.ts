@@ -112,7 +112,6 @@ export const donLienDecks = {
   home: {
     eyebrow: "See DonLien",
     title: "The Signal Behind The LIENIVERSE",
-    image: pageImages.home,
     slides: [
       {
         title: "DonLien Arrives",
@@ -131,7 +130,6 @@ export const donLienDecks = {
   become: {
     eyebrow: "Meet The Intake Guide",
     title: "Your First DonLien Contact",
-    image: pageImages.home,
     slides: [
       {
         title: "Upload",
@@ -150,7 +148,6 @@ export const donLienDecks = {
   mission: {
     eyebrow: "Command View",
     title: "DonLien In Mission Control",
-    image: pageImages.mission,
     slides: [
       {
         title: "Operational Layer",
@@ -169,7 +166,6 @@ export const donLienDecks = {
   genesis: {
     eyebrow: "Genesis Protocol",
     title: "The First DonLien Relics",
-    image: pageImages.genesis,
     slides: [
       {
         title: "Founding Supply",
@@ -188,7 +184,6 @@ export const donLienDecks = {
   lienity: {
     eyebrow: "LIENITY",
     title: "DonLien As Diplomat",
-    image: pageImages.lienity,
     slides: [
       {
         title: "Unity Layer",
@@ -207,7 +202,6 @@ export const donLienDecks = {
   archive: {
     eyebrow: "Archive Level 51",
     title: "DonLien In The Records",
-    image: pageImages.archive,
     slides: [
       {
         title: "Recovered Files",
