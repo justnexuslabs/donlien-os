@@ -6,7 +6,7 @@ import { donLienDecks, homeValues, pageImages } from "@/lib/content";
 
 export default function Home() {
   return (
-    <PageFrame image={pageImages.home}>
+    <PageFrame image={pageImages.home} motion>
       <section className="mx-auto grid min-h-[calc(100svh-6rem)] max-w-[1600px] items-end gap-8 px-4 pb-8 md:px-8 xl:grid-cols-[1fr_380px]">
         <div className="order-1 max-w-3xl xl:order-none">
           <p className="font-display text-2xl font-black uppercase tracking-[0.08em] text-lime-300">Welcome to the</p>

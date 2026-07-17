@@ -44,6 +44,11 @@ select {
   font-family: var(--font-rajdhani), var(--font-inter), sans-serif;
 }
 
+.donlien-nav-badge {
+  filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.75));
+  animation: badge-flicker 4.8s infinite;
+}
+
 .hud-panel {
   position: relative;
   border: 1px solid color-mix(in srgb, var(--accent, var(--green)) 58%, transparent);
@@ -119,6 +124,24 @@ select {
   filter: saturate(1.2) contrast(1.08) brightness(1.08);
 }
 
+.bg-reference-motion img {
+  transform-origin: 50% 30%;
+  animation: hero-motion-loop 18s ease-in-out infinite;
+}
+
+.bg-reference-motion::before {
+  position: absolute;
+  inset: -18%;
+  z-index: 1;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(115deg, transparent 18%, rgba(57, 255, 20, 0.12) 30%, transparent 42%),
+    radial-gradient(circle at 78% 18%, rgba(57, 255, 20, 0.16), transparent 18rem);
+  mix-blend-mode: screen;
+  animation: hero-signal-sweep 7s linear infinite;
+}
+
 .bg-reference::after {
   position: absolute;
   inset: 0;
@@ -149,6 +172,57 @@ select {
   background:
     radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent, var(--green)) 62%, transparent), transparent 5rem),
     radial-gradient(circle at 50% 40%, #0f2b17, #030503 68%);
+}
+
+@keyframes badge-flicker {
+  0%,
+  7%,
+  10%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.75)) drop-shadow(0 0 18px rgba(57, 255, 20, 0.32));
+  }
+
+  8%,
+  9% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 4px rgba(57, 255, 20, 0.35));
+  }
+
+  58% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 12px rgba(57, 255, 20, 0.92)) drop-shadow(0 0 28px rgba(57, 255, 20, 0.44));
+  }
+}
+
+@keyframes hero-motion-loop {
+  0%,
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+    filter: saturate(1.18) contrast(1.08) brightness(1.05);
+  }
+
+  50% {
+    transform: scale(1.035) translate3d(-0.8%, 0.7%, 0);
+    filter: saturate(1.32) contrast(1.12) brightness(1.15);
+  }
+}
+
+@keyframes hero-signal-sweep {
+  from {
+    transform: translateX(-38%) skewX(-10deg);
+    opacity: 0;
+  }
+
+  18%,
+  58% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(42%) skewX(-10deg);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
