@@ -1,6 +1,7 @@
+import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
-import { archiveCategories, archiveRecords, pageImages } from "@/lib/content";
+import { archiveCategories, archiveRecords, donLienDecks, pageImages } from "@/lib/content";
 
 export default function ArchivePage() {
   return (
@@ -35,6 +36,7 @@ export default function ArchivePage() {
           </HudPanel>
         </div>
       </section>
+      <DonLienStoryDeck {...donLienDecks.archive} accent="#D2A95D" />
       <section className="mx-auto grid max-w-[1500px] gap-3 px-4 pb-8 md:grid-cols-5 md:px-8">
         {archiveRecords.map((record) => (
           <HudPanel key={record.title} accent="#D2A95D">

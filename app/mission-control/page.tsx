@@ -1,7 +1,8 @@
+import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { HologramGlobe } from "@/components/HologramGlobe";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
-import { liveFeeds, missionStats, objectives, pageImages } from "@/lib/content";
+import { donLienDecks, liveFeeds, missionStats, objectives, pageImages } from "@/lib/content";
 
 export default function MissionControlPage() {
   return (
@@ -51,6 +52,7 @@ export default function MissionControlPage() {
           </HudPanel>
         </div>
       </section>
+      <DonLienStoryDeck {...donLienDecks.mission} accent="#35ECFF" />
       <section className="mx-auto grid max-w-[1600px] gap-3 px-4 pb-8 md:grid-cols-4 md:px-8">
         {missionStats.map((stat) => {
           const Icon = stat.icon;

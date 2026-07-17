@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
-import { pageImages, rarity } from "@/lib/content";
+import { donLienDecks, pageImages, rarity } from "@/lib/content";
 
 export default function GenesisPage() {
   return (
@@ -51,6 +52,7 @@ export default function GenesisPage() {
           </HudPanel>
         </div>
       </section>
+      <DonLienStoryDeck {...donLienDecks.genesis} accent="#E7BA50" />
     </PageFrame>
   );
 }

@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
-import { embassyCards, pageImages, pillars } from "@/lib/content";
+import { donLienDecks, embassyCards, pageImages, pillars } from "@/lib/content";
 
 export default function LienityPage() {
   return (
@@ -45,6 +46,7 @@ export default function LienityPage() {
           </HudPanel>
         </div>
       </section>
+      <DonLienStoryDeck {...donLienDecks.lienity} />
       <section className="mx-auto grid max-w-[1500px] gap-3 px-4 pb-8 md:grid-cols-4 md:px-8">
         {embassyCards.map((card) => (
           <HudPanel key={card.title} accent="#E7BA50">

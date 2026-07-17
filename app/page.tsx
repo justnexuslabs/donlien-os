@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
-import { homeValues, pageImages } from "@/lib/content";
+import { donLienDecks, homeValues, pageImages } from "@/lib/content";
 
 export default function Home() {
   return (
@@ -49,6 +50,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <DonLienStoryDeck {...donLienDecks.home} />
       <section className="mx-auto grid max-w-[1500px] gap-3 px-4 pb-8 md:grid-cols-4 md:px-8">
         {homeValues.map((value) => {
           const Icon = value.icon;

@@ -1,6 +1,7 @@
 import { BecomeLienWizard } from "@/components/BecomeLienWizard";
+import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { PageFrame } from "@/components/PageFrame";
-import { pageImages } from "@/lib/content";
+import { donLienDecks, pageImages } from "@/lib/content";
 
 export default function BecomeLienPage() {
   return (
@@ -14,6 +15,7 @@ export default function BecomeLienPage() {
           </p>
         </div>
       </section>
+      <DonLienStoryDeck {...donLienDecks.become} />
       <BecomeLienWizard />
     </PageFrame>
   );
