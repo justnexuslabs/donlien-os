@@ -8,22 +8,17 @@ export function DonLienBadgeIcon({ className = "" }: DonLienBadgeIconProps) {
       className={className}
       viewBox="0 0 128 128"
       role="img"
-      aria-label="DonLien Recruitment Unit 51 badge"
+      aria-label="DonLien neon alien logo"
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient id="donlienBadgeGold" x1="24" x2="104" y1="10" y2="118" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#F3D77B" />
-          <stop offset="0.48" stopColor="#9C7938" />
-          <stop offset="1" stopColor="#F6DF8F" />
-        </linearGradient>
-        <filter id="donlienBadgeGlow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="2.4" result="blur" />
+        <filter id="donlienLogoGlow" x="-35%" y="-35%" width="170%" height="170%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
           <feColorMatrix
             in="blur"
             result="greenGlow"
             type="matrix"
-            values="0 0 0 0 0.22 0 0 0 0 1 0 0 0 0 0.08 0 0 0 0.95 0"
+            values="0 0 0 0 0.22 0 0 0 0 1 0 0 0 0 0.08 0 0 0 1 0"
           />
           <feMerge>
             <feMergeNode in="greenGlow" />
@@ -31,41 +26,17 @@ export function DonLienBadgeIcon({ className = "" }: DonLienBadgeIconProps) {
           </feMerge>
         </filter>
       </defs>
-      <path
-        d="M64 7 108 27v37c0 28-17 48-44 57-27-9-44-29-44-57V27L64 7Z"
-        fill="#11140F"
-        stroke="#050604"
-        strokeWidth="8"
-      />
-      <path
-        d="M64 12 102 30v34c0 24-14 42-38 51-24-9-38-27-38-51V30L64 12Z"
-        fill="#151711"
-        stroke="url(#donlienBadgeGold)"
-        strokeWidth="5"
-      />
-      <path d="M38 36h14l-7 12H33l5-12ZM90 36H76l7 12h12l-5-12Z" fill="url(#donlienBadgeGold)" opacity="0.9" />
-      <circle cx="64" cy="55" r="30" fill="#060806" stroke="url(#donlienBadgeGold)" strokeWidth="5" />
-      <g filter="url(#donlienBadgeGlow)">
+      <circle cx="64" cy="64" r="58" fill="#050805" stroke="#39FF14" strokeWidth="6" />
+      <circle cx="64" cy="64" r="46" fill="#020604" opacity="0.96" />
+      <g filter="url(#donlienLogoGlow)">
         <path
-          d="M64 26c18 2 27 16 24 34-2 17-14 31-24 42-10-11-22-25-24-42-3-18 6-32 24-34Z"
+          d="M64 25c21 2 33 17 30 39-3 22-18 38-30 48-12-10-27-26-30-48-3-22 9-37 30-39Z"
           fill="#39FF14"
         />
-        <path d="M49 60c-9-8-7-19 5-20 10 0 14 8 10 20-7 1-11 1-15 0Z" fill="#030403" />
-        <path d="M79 60c9-8 7-19-5-20-10 0-14 8-10 20 7 1 11 1 15 0Z" fill="#030403" />
-        <path d="M58 76c2 4 4 4 6 1 2 3 4 3 6-1-2 10-10 10-12 0Z" fill="#030403" opacity="0.9" />
+        <path d="M47 65c-11-9-8-23 6-24 11 0 17 9 12 24-7 2-13 2-18 0Z" fill="#020604" />
+        <path d="M81 65c11-9 8-23-6-24-11 0-17 9-12 24 7 2 13 2 18 0Z" fill="#020604" />
+        <path d="M58 84c2 4 4 5 6 2 2 3 4 2 6-2-2 11-10 11-12 0Z" fill="#020604" opacity="0.92" />
       </g>
-      <circle cx="64" cy="96" r="14" fill="#0A0D08" stroke="url(#donlienBadgeGold)" strokeWidth="4" />
-      <text
-        x="64"
-        y="102"
-        fill="#39FF14"
-        fontFamily="Arial Black, Arial, sans-serif"
-        fontSize="17"
-        fontWeight="900"
-        textAnchor="middle"
-      >
-        51
-      </text>
     </svg>
   );
 }

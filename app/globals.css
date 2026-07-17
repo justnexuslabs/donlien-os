@@ -142,6 +142,46 @@ select {
   animation: hero-signal-sweep 7s linear infinite;
 }
 
+.home-hero-loop {
+  position: relative;
+}
+
+.home-hero-loop::before,
+.home-hero-loop::after {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+}
+
+.home-hero-loop::before {
+  top: 3rem;
+  left: 50%;
+  width: min(48rem, 86vw);
+  height: min(48rem, 78vh);
+  background: conic-gradient(from 180deg at 50% 0%, rgba(57, 255, 20, 0.32), transparent 22%, transparent 78%, rgba(57, 255, 20, 0.18));
+  clip-path: polygon(48% 0, 52% 0, 100% 100%, 0 100%);
+  filter: blur(10px);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  transform: translateX(-50%);
+  animation: mothership-beam-loop 6.4s ease-in-out infinite;
+}
+
+.home-hero-loop::after {
+  right: 5vw;
+  bottom: 11vh;
+  width: min(34rem, 58vw);
+  height: 5rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(57, 255, 20, 0.38), transparent 70%),
+    linear-gradient(90deg, transparent, rgba(57, 255, 20, 0.35), transparent);
+  filter: blur(14px);
+  mix-blend-mode: screen;
+  animation: cybertruck-platform-loop 5.8s ease-in-out infinite;
+}
+
 .bg-reference::after {
   position: absolute;
   inset: 0;
@@ -222,6 +262,33 @@ select {
   to {
     transform: translateX(42%) skewX(-10deg);
     opacity: 0;
+  }
+}
+
+@keyframes mothership-beam-loop {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scaleY(0.86);
+  }
+
+  45%,
+  62% {
+    opacity: 0.9;
+    transform: translateX(-50%) scaleY(1.06);
+  }
+}
+
+@keyframes cybertruck-platform-loop {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translate3d(0, 0, 0) scaleX(0.94);
+  }
+
+  50% {
+    opacity: 0.72;
+    transform: translate3d(-1.2rem, -0.35rem, 0) scaleX(1.04);
   }
 }
 
