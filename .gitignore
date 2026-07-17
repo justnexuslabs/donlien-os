@@ -5,6 +5,7 @@ dist
 .env*
 !.env.example
 *.log
+.npm-cache
 .DS_Store
 .gitlocal
 pnpm-lock.yaml

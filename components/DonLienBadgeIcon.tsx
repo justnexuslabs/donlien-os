@@ -26,16 +26,16 @@ export function DonLienBadgeIcon({ className = "" }: DonLienBadgeIconProps) {
           </feMerge>
         </filter>
       </defs>
-      <circle cx="64" cy="64" r="58" fill="#050805" stroke="#39FF14" strokeWidth="6" />
-      <circle cx="64" cy="64" r="46" fill="#020604" opacity="0.96" />
+      <circle cx="64" cy="64" r="58" fill="#050805" stroke="#39FF14" strokeWidth="5" />
+      <circle cx="64" cy="64" r="51" fill="#020604" />
       <g filter="url(#donlienLogoGlow)">
         <path
-          d="M64 25c21 2 33 17 30 39-3 22-18 38-30 48-12-10-27-26-30-48-3-22 9-37 30-39Z"
+          d="M64 18c24 2 38 19 35 43-3 26-20 43-35 54-15-11-32-28-35-54-3-24 11-41 35-43Z"
           fill="#39FF14"
         />
-        <path d="M47 65c-11-9-8-23 6-24 11 0 17 9 12 24-7 2-13 2-18 0Z" fill="#020604" />
-        <path d="M81 65c11-9 8-23-6-24-11 0-17 9-12 24 7 2 13 2 18 0Z" fill="#020604" />
-        <path d="M58 84c2 4 4 5 6 2 2 3 4 2 6-2-2 11-10 11-12 0Z" fill="#020604" opacity="0.92" />
+        <path d="M46 65c-13-11-9-27 7-28 13 0 20 11 14 28-8 3-15 3-21 0Z" fill="#020604" />
+        <path d="M82 65c13-11 9-27-7-28-13 0-20 11-14 28 8 3 15 3 21 0Z" fill="#020604" />
+        <path d="M58 86c2 4 4 5 6 2 2 3 4 2 6-2-2 11-10 11-12 0Z" fill="#020604" opacity="0.92" />
       </g>
     </svg>
   );

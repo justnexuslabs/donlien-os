@@ -13,6 +13,23 @@ import { makeLienName, sanitizeUserText } from "@/lib/naming";
 
 export const runtime = "nodejs";
 
+function getOpenAIConfig() {
+  const imageModel = process.env.OPENAI_IMAGE_MODEL;
+  const fallbackModel = "gpt-image-1-mini";
+  const apiKey =
+    process.env.OPENAI_API_KEY ||
+    process.env.OPENAI_IMAGE_API_KEY ||
+    process.env.OPENAI_AI_KEY ||
+    process.env.openAI_api ||
+    (imageModel?.startsWith("sk-") ? imageModel : undefined);
+
+  return {
+    apiKey,
+    model: imageModel && !imageModel.startsWith("sk-") ? imageModel : fallbackModel,
+    modelMisconfigured: Boolean(imageModel?.startsWith("sk-")),
+  };
+}
+
 export async function POST(request: Request) {
   if (!(await assertSameOrigin())) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
@@ -42,7 +59,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: portraitCheck.error }, { status: 400 });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  const openAIConfig = getOpenAIConfig();
+
+  if (!openAIConfig.apiKey) {
     logEvent("transform_missing_openai_key", { role: parsed.data.role });
     return NextResponse.json(
       {
@@ -52,6 +71,10 @@ export async function POST(request: Request) {
       },
       { status: 503 },
     );
+  }
+
+  if (openAIConfig.modelMisconfigured) {
+    logEvent("transform_openai_model_env_contains_key", { role: parsed.data.role });
   }
 
   const prompt = [
@@ -65,17 +88,33 @@ export async function POST(request: Request) {
     "No earrings. No random jewelry. No text except DONLIEN on the tie when it fits clearly.",
   ].join(" ");
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({ apiKey: openAIConfig.apiKey });
   const file = await toFile(Buffer.from(await portrait.arrayBuffer()), portrait.name || "portrait.png", {
     type: portrait.type,
   });
 
-  const image = await client.images.edit({
-    model: process.env.OPENAI_IMAGE_MODEL || "gpt-image-1-mini",
-    image: file,
-    prompt,
-    size: "1024x1024",
-  });
+  let image;
+  try {
+    image = await client.images.edit({
+      model: openAIConfig.model,
+      image: file,
+      prompt,
+      size: "1024x1024",
+    });
+  } catch (error) {
+    logEvent("transform_openai_error", {
+      role: parsed.data.role,
+      message: error instanceof Error ? error.message.slice(0, 160) : "Unknown OpenAI error",
+    });
+    return NextResponse.json(
+      {
+        error: "OpenAI image generation failed. Check the API key, billing, and image model env settings.",
+        lienId: makeLienId(),
+        lienName: makeLienName(parsed.data.humanName),
+      },
+      { status: 502 },
+    );
+  }
 
   const b64 = image.data?.[0]?.b64_json;
   if (!b64) {
