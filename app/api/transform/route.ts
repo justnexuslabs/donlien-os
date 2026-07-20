@@ -85,9 +85,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
 
-  const limited = await rateLimit(await getClientKey("transform"), 5, 60 * 60 * 1000);
-  if (!limited.ok) {
-    return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
+  const adminBypass = await hasAdminSession();
+  if (!adminBypass) {
+    const limited = await rateLimit(await getClientKey("transform"), 20, 60 * 60 * 1000);
+    if (!limited.ok) {
+      return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
+    }
   }
 
   const formData = await request.formData();
@@ -100,7 +103,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid transform request." }, { status: 400 });
   }
 
-  const adminBypass = await hasAdminSession();
   if (!adminBypass) {
     const access = await getGenerationAccess(parsed.data.sessionId);
     if (!access.ok) {
