@@ -163,10 +163,11 @@ export async function POST(request: Request) {
   try {
     image = await client.images.edit({
       model: modelUsed,
-      image: file,
-      prompt,
-      size: "1024x1024",
-    });
+        image: file,
+        prompt,
+        quality: "low",
+        size: "auto",
+      });
   } catch (error) {
     if (modelUsed !== "gpt-image-1" && shouldRetryWithStandardImageModel(error)) {
       logEvent("transform_openai_model_retry", {
@@ -180,7 +181,8 @@ export async function POST(request: Request) {
           model: modelUsed,
           image: file,
           prompt,
-          size: "1024x1024",
+          quality: "low",
+          size: "auto",
         });
       } catch (retryError) {
         const details = getOpenAIErrorDetails(retryError);
