@@ -143,10 +143,11 @@ export async function POST(request: Request) {
   }
 
   const prompt = [
-    `Transform ${sanitizeUserText(parsed.data.humanName)} into a canonical DonLien premium pixel avatar.`,
-    "Preserve the person's recognizable identity, face shape, expression, and general pose from the uploaded portrait.",
-    "Render as crisp collectible pixel art, like a 128x128 avatar intentionally upscaled to 1024x1024 with sharp square pixels.",
-    "Use alien-green skin, glossy black almond-shaped eyes, and blonde presidential side-swept DonLien hair.",
+    `Create a DonLien premium pixel avatar of ${sanitizeUserText(parsed.data.humanName)} using the uploaded portrait as the identity reference.`,
+    "The uploaded person's likeness is the priority: keep their head angle, face proportions, jawline, nose bridge, mouth shape, brow shape, hairline, expression, and camera framing recognizable.",
+    "Do not replace the subject with a generic alien mascot. Do not invent a new face. This must read as the uploaded person transformed into a DonLien form.",
+    "Render as crisp collectible pixel art, like a 128x128 avatar intentionally upscaled with sharp square pixels.",
+    "Apply subtle DonLien traits: controlled alien-green skin tint and glossy dark almond eyes while retaining the original face structure and expression.",
     `Role-specific outfit: ${parsed.data.role}. Make the outfit readable and iconic at avatar scale.`,
     "If a tie exists, make it match the outfit with vertical glowing green DONLIEN letters.",
     "Use a clean faction-card background, strong silhouette, high contrast, no blur, no painterly shading, no photorealism.",
@@ -163,11 +164,11 @@ export async function POST(request: Request) {
   try {
     image = await client.images.edit({
       model: modelUsed,
-        image: file,
-        prompt,
-        quality: "low",
-        size: "auto",
-      });
+      image: file,
+      prompt,
+      quality: "low",
+      size: "auto",
+    });
   } catch (error) {
     if (modelUsed !== "gpt-image-1" && shouldRetryWithStandardImageModel(error)) {
       logEvent("transform_openai_model_retry", {
