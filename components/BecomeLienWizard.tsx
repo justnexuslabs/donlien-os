@@ -189,7 +189,7 @@ export function BecomeLienWizard() {
                 <img src={portraitPreview} alt="Portrait preview" className="h-full w-full object-cover" />
               </div>
               <p className="self-center text-sm leading-6 text-zinc-200">
-                Live LIENification turns this portrait into a premium pixel DonLien avatar once `OPENAI_API_KEY` is configured.
+                Live LIENification turns this portrait into a premium pixel DonLien avatar.
               </p>
             </div>
           ) : null}

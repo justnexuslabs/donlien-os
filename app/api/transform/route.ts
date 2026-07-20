@@ -86,13 +86,6 @@ export async function POST(request: Request) {
   }
 
   const adminBypass = await hasAdminSession();
-  if (!adminBypass) {
-    const limited = await rateLimit(await getClientKey("transform"), 20, 60 * 60 * 1000);
-    if (!limited.ok) {
-      return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
-    }
-  }
-
   const formData = await request.formData();
   const parsed = transformFieldsSchema.safeParse({
     sessionId: formData.get("sessionId"),
@@ -101,6 +94,14 @@ export async function POST(request: Request) {
   });
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid transform request." }, { status: 400 });
+  }
+
+  if (!adminBypass) {
+    const sessionLimited = await rateLimit(`transform_session:${parsed.data.sessionId}`, 20, 60 * 60 * 1000);
+    const ipLimited = await rateLimit(await getClientKey("transform_ip"), 100, 60 * 60 * 1000);
+    if (!sessionLimited.ok || !ipLimited.ok) {
+      return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
+    }
   }
 
   if (!adminBypass) {
