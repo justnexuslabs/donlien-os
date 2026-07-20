@@ -82,13 +82,13 @@ export async function rateLimit(key: string, limit: number, windowMs: number) {
 
   if (error) {
     logEvent("rate_limit_check_failed", { scope: key.split(":")[0], reason: error.code });
-    return { ok: false, remaining: 0 };
+    return memoryRateLimit(key, limit, windowMs);
   }
 
   const result = Array.isArray(data) ? data[0] : data;
   if (!result || typeof result.allowed !== "boolean" || typeof result.remaining !== "number") {
     logEvent("rate_limit_check_invalid_response", { scope: key.split(":")[0] });
-    return { ok: false, remaining: 0 };
+    return memoryRateLimit(key, limit, windowMs);
   }
 
   return { ok: result.allowed, remaining: result.remaining };
