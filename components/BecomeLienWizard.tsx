@@ -23,6 +23,8 @@ export function BecomeLienWizard() {
   const [portrait, setPortrait] = useState<File | null>(null);
   const [portraitPreview, setPortraitPreview] = useState("");
   const [status, setStatus] = useState("");
+  const [paymentRequired, setPaymentRequired] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const lienName = useMemo(() => makeLienName(humanName || "New"), [humanName]);
   const stage = step === 1 ? "human_input" : step === 2 ? "upload" : step === 3 ? "review" : "activation";
@@ -59,14 +61,21 @@ export function BecomeLienWizard() {
       return;
     }
     setStatus("Pixel LIENification in progress.");
+    setPaymentRequired(false);
     void trackSignupStage("transform", false);
     const form = new FormData();
+    form.set("sessionId", sessionId);
     form.set("humanName", humanName);
     form.set("role", role);
     form.set("portrait", portrait);
     const response = await fetch("/api/transform", { method: "POST", body: form });
     const payload = await response.json();
     if (!response.ok) {
+      if (payload.paymentRequired) {
+        setPaymentRequired(true);
+        setStatus(payload.error || "Buy a retry credit to generate another image.");
+        return;
+      }
       if (payload.lienId && payload.lienName && portraitPreview) {
         setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: portraitPreview });
         setStep(3);
@@ -79,6 +88,23 @@ export function BecomeLienWizard() {
     setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: payload.imageDataUrl });
     setStep(3);
     setStatus("Review your pixel LIEN identity.");
+  }
+
+  async function buyRetryCredit() {
+    setCheckoutLoading(true);
+    setStatus("Opening secure checkout.");
+    const response = await fetch("/api/payments/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.url) {
+      setCheckoutLoading(false);
+      setStatus(payload.error || "Checkout is not available yet.");
+      return;
+    }
+    window.location.assign(payload.url);
   }
 
   function updatePortrait(file: File | null) {
@@ -170,6 +196,11 @@ export function BecomeLienWizard() {
           <button className="clip-hud mt-5 inline-flex items-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={transform}>
             <Sparkles size={18} /> Transform
           </button>
+          {paymentRequired ? (
+            <button className="clip-hud ml-0 mt-3 inline-flex items-center gap-2 border border-amber-300 px-5 py-3 font-display uppercase text-amber-100 sm:ml-3" onClick={buyRetryCredit} disabled={checkoutLoading}>
+              Buy Retry Credit
+            </button>
+          ) : null}
           {portraitPreview ? (
             <button
               className="clip-hud ml-0 mt-3 inline-flex items-center gap-2 border border-white/30 px-5 py-3 font-display uppercase text-white sm:ml-3"
@@ -206,6 +237,14 @@ export function BecomeLienWizard() {
               <button className="clip-hud mt-4 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={saveIdentity}>
                 Save Identity
               </button>
+              <button className="clip-hud mt-2 border border-amber-300 px-5 py-3 font-display uppercase text-amber-100" onClick={transform}>
+                Generate Another
+              </button>
+              {paymentRequired ? (
+                <button className="clip-hud mt-2 border border-amber-300 px-5 py-3 font-display uppercase text-amber-100" onClick={buyRetryCredit} disabled={checkoutLoading}>
+                  Buy Retry Credit
+                </button>
+              ) : null}
             </div>
           </div>
         </HudPanel>

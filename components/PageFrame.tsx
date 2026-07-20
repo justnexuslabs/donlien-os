@@ -1,5 +1,5 @@
-import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
+import { AmbientGlow } from "./AmbientGlow";
 import { SiteNav } from "./SiteNav";
 
 type PageFrameProps = {
@@ -12,10 +12,7 @@ type PageFrameProps = {
 export function PageFrame({ image, accent = "#39FF14", motion = false, children }: PageFrameProps) {
   return (
     <main className="page-shell relative overflow-hidden" style={{ "--accent": accent } as CSSProperties}>
-      <div className={`bg-reference ${motion ? "bg-reference-motion" : ""}`}>
-        <Image src={image} alt="" fill priority sizes="100vw" />
-      </div>
-      <div className="scanlines" />
+      <AmbientGlow image={image} motion={motion} />
       <SiteNav />
       <div className="relative z-10 pt-24">{children}</div>
     </main>

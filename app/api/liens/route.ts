@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   if (!(await assertSameOrigin())) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
-  const limited = rateLimit(await getClientKey("liens"), 20, 60 * 60 * 1000);
+  const limited = await rateLimit(await getClientKey("liens"), 20, 60 * 60 * 1000);
   if (!limited.ok) {
     return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
   }

@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, type KeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HudPanel } from "./HudPanel";
 
@@ -19,6 +22,30 @@ export function DonLienStoryDeck({
   slides,
   accent = "#39FF14",
 }: DonLienStoryDeckProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  function handleDeckKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      scroller.scrollBy({
+        left: event.key === "ArrowLeft" ? -scroller.clientWidth : scroller.clientWidth,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      scroller.scrollTo({
+        left: event.key === "Home" ? 0 : scroller.scrollWidth,
+        behavior: "smooth",
+      });
+    }
+  }
+
   return (
     <section className="mx-auto max-w-[1120px] overflow-hidden px-4 pb-10 md:px-8">
       <HudPanel title={eyebrow} accent={accent}>
@@ -40,6 +67,9 @@ export function DonLienStoryDeck({
         <div
           className="grid w-full max-w-full auto-cols-[100%] grid-flow-col snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label={`${title} swipe panels`}
+          onKeyDown={handleDeckKeyDown}
+          ref={scrollerRef}
+          tabIndex={0}
         >
           {slides.map((slide, index) => (
             <article

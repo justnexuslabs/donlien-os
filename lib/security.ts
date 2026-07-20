@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { genesisStatuses, roles } from "./content";
 import { sanitizeUserText } from "./naming";
+import { getSupabaseAdmin } from "./supabase";
 
 export const MAX_PORTRAIT_BYTES = 8 * 1024 * 1024;
 export const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -21,8 +22,13 @@ export const lienSchema = z.object({
 });
 
 export const transformFieldsSchema = z.object({
+  sessionId: z.string().trim().min(8).max(128),
   humanName: z.string().trim().min(1).max(80),
   role: roleSchema,
+});
+
+export const checkoutSchema = z.object({
+  sessionId: z.string().trim().min(8).max(128),
 });
 
 export const adminLoginSchema = z.object({
@@ -52,7 +58,7 @@ export function makeLienId() {
   return `LIEN-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
-export function rateLimit(key: string, limit: number, windowMs: number) {
+function memoryRateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const existing = buckets.get(key);
   if (!existing || existing.resetAt <= now) {
@@ -62,6 +68,30 @@ export function rateLimit(key: string, limit: number, windowMs: number) {
   if (existing.count >= limit) return { ok: false, remaining: 0 };
   existing.count += 1;
   return { ok: true, remaining: limit - existing.count };
+}
+
+export async function rateLimit(key: string, limit: number, windowMs: number) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return memoryRateLimit(key, limit, windowMs);
+
+  const { data, error } = await supabase.rpc("consume_rate_limit", {
+    bucket_key: key,
+    bucket_limit: limit,
+    window_seconds: Math.ceil(windowMs / 1000),
+  });
+
+  if (error) {
+    logEvent("rate_limit_check_failed", { scope: key.split(":")[0], reason: error.code });
+    return { ok: false, remaining: 0 };
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+  if (!result || typeof result.allowed !== "boolean" || typeof result.remaining !== "number") {
+    logEvent("rate_limit_check_invalid_response", { scope: key.split(":")[0] });
+    return { ok: false, remaining: 0 };
+  }
+
+  return { ok: result.allowed, remaining: result.remaining };
 }
 
 export async function getClientKey(scope: string) {

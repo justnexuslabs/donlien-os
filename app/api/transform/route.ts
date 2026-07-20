@@ -3,12 +3,14 @@ import { NextResponse } from "next/server";
 import {
   assertSameOrigin,
   getClientKey,
+  hasAdminSession,
   logEvent,
   makeLienId,
   rateLimit,
   transformFieldsSchema,
   validatePortrait,
 } from "@/lib/security";
+import { getGenerationAccess, recordSuccessfulGeneration } from "@/lib/generation";
 import { makeLienName, sanitizeUserText } from "@/lib/naming";
 
 export const runtime = "nodejs";
@@ -83,18 +85,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
 
-  const limited = rateLimit(await getClientKey("transform"), 5, 60 * 60 * 1000);
+  const limited = await rateLimit(await getClientKey("transform"), 5, 60 * 60 * 1000);
   if (!limited.ok) {
     return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
   }
 
   const formData = await request.formData();
   const parsed = transformFieldsSchema.safeParse({
+    sessionId: formData.get("sessionId"),
     humanName: formData.get("humanName"),
     role: formData.get("role"),
   });
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid transform request." }, { status: 400 });
+  }
+
+  const adminBypass = await hasAdminSession();
+  if (!adminBypass) {
+    const access = await getGenerationAccess(parsed.data.sessionId);
+    if (!access.ok) {
+      return NextResponse.json(
+        { error: access.error, paymentRequired: "paymentRequired" in access ? access.paymentRequired : false },
+        { status: "paymentRequired" in access && access.paymentRequired ? 402 : 503 },
+      );
+    }
   }
 
   const portrait = formData.get("portrait");
@@ -206,6 +220,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image generation did not return image data." }, { status: 502 });
   }
 
+  if (!adminBypass) await recordSuccessfulGeneration(parsed.data.sessionId);
   logEvent("transform_complete", { role: parsed.data.role, bytes: portrait.size, model: modelUsed });
   return NextResponse.json({
     lienId: makeLienId(),

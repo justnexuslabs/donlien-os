@@ -1,8 +1,10 @@
-import { AdminPanel } from "@/components/AdminPanel";
+import dynamic from "next/dynamic";
 import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { PageFrame } from "@/components/PageFrame";
 import { hasAdminSession } from "@/lib/security";
 import { donLienDecks, pageImages } from "@/lib/content";
+
+const AdminPanel = dynamic(() => import("@/components/AdminPanel").then((module) => module.AdminPanel));
 
 export default async function AdminPage() {
   const active = await hasAdminSession();
