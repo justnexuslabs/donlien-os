@@ -87,7 +87,7 @@ export function BecomeLienWizard() {
     }
     setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: payload.imageDataUrl });
     setStep(3);
-    setStatus("Review your pixel LIEN identity.");
+    setStatus("Review your DEN / DonLien ID card.");
   }
 
   async function buyRetryCredit() {
@@ -188,9 +188,15 @@ export function BecomeLienWizard() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={portraitPreview} alt="Portrait preview" className="h-full w-full object-cover" />
               </div>
-              <p className="self-center text-sm leading-6 text-zinc-200">
-                Live LIENification turns this portrait into a premium pixel DonLien avatar.
-              </p>
+              <div className="self-center text-sm leading-6 text-zinc-200">
+                <p className="font-display uppercase text-lime-300">Headshot directions</p>
+                <ul className="mt-2 grid gap-1">
+                  <li>Use a clear face photo from shoulders up.</li>
+                  <li>Keep eyes, jawline, hairline, and expression visible.</li>
+                  <li>Avoid heavy filters, sunglasses, masks, and dark shadows.</li>
+                  <li>The card will show alien traits, DEN / DONLIEN branding, and LIEN name: {lienName}.</li>
+                </ul>
+              </div>
             </div>
           ) : null}
           <button className="clip-hud mt-5 inline-flex items-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={transform}>
@@ -207,7 +213,7 @@ export function BecomeLienWizard() {
               onClick={() => {
                 setResult({ lienId: `LIEN-${Date.now().toString(36).toUpperCase()}`, lienName, imageDataUrl: portraitPreview });
                 setStep(3);
-                setStatus("Demo review created from your uploaded portrait preview. Live pixel transform requires OpenAI credentials.");
+                setStatus("Demo review created from your uploaded portrait preview. Live generation creates a DEN / DonLien ID card.");
               }}
             >
               Use Demo Preview
@@ -222,7 +228,7 @@ export function BecomeLienWizard() {
               {result?.imageDataUrl ? (
                 // Data URLs returned by the protected transform route cannot be optimized by next/image.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={result.imageDataUrl} alt="Generated pixel LIEN avatar" className="h-full w-full object-cover [image-rendering:pixelated]" />
+                <img src={result.imageDataUrl} alt="Generated DEN / DonLien ID card" className="h-full w-full object-cover [image-rendering:pixelated]" />
               ) : (
                 <span className="font-display text-5xl">DL</span>
               )}

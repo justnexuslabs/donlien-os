@@ -142,16 +142,18 @@ export async function POST(request: Request) {
     logEvent("transform_openai_model_env_contains_key", { role: parsed.data.role });
   }
 
+  const lienName = makeLienName(parsed.data.humanName);
   const prompt = [
-    `Create a DonLien premium pixel avatar of ${sanitizeUserText(parsed.data.humanName)} using the uploaded portrait as the identity reference.`,
+    `Create a shareable DonLien / DEN movement ID card for ${sanitizeUserText(parsed.data.humanName)} using the uploaded portrait as the identity reference.`,
+    `The person's LIEN designation is ${lienName}. This LIEN name must be readable on the finished image.`,
     "The uploaded person's likeness is the priority: keep their head angle, face proportions, jawline, nose bridge, mouth shape, brow shape, hairline, expression, and camera framing recognizable.",
     "Do not replace the subject with a generic alien mascot. Do not invent a new face. This must read as the uploaded person transformed into a DonLien form.",
     "Render as crisp collectible pixel art, like a 128x128 avatar intentionally upscaled with sharp square pixels.",
     "Apply subtle DonLien traits: controlled alien-green skin tint and glossy dark almond eyes while retaining the original face structure and expression.",
     `Role-specific outfit: ${parsed.data.role}. Make the outfit readable and iconic at avatar scale.`,
-    "If a tie exists, make it match the outfit with vertical glowing green DONLIEN letters.",
-    "Use a clean faction-card background, strong silhouette, high contrast, no blur, no painterly shading, no photorealism.",
-    "No earrings. No random jewelry. No text except DONLIEN on the tie when it fits clearly.",
+    `If a tie is visible, place ${lienName} vertically on the tie in glowing green letters. If the tie is too small, place ${lienName} in a bold ID-card nameplate instead.`,
+    "Make the full composition resemble an official futuristic ID card: DEN / DONLIEN branding, Level 51 signal, portrait area, readable LIEN designation, clean faction-card background, strong silhouette, high contrast.",
+    "No blur, no painterly shading, no photorealism. No earrings. No random jewelry. Do not add unrelated words.",
   ].join(" ");
 
   const client = new OpenAI({ apiKey: openAIConfig.apiKey });
@@ -230,7 +232,7 @@ export async function POST(request: Request) {
   logEvent("transform_complete", { role: parsed.data.role, bytes: portrait.size, model: modelUsed });
   return NextResponse.json({
     lienId: makeLienId(),
-    lienName: makeLienName(parsed.data.humanName),
+    lienName,
     imageDataUrl: `data:image/png;base64,${b64}`,
   });
 }
