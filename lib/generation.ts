@@ -68,46 +68,11 @@ export async function recordSuccessfulGeneration(
   const supabase = getSupabaseAdmin();
   if (!supabase) return;
 
-  const { data, error } = await supabase
-    .from("generation_sessions")
-    .select(
-      "free_generations_used, paid_credits, paid_generations_used, standard_credits, holographic_credits",
-    )
-    .eq("session_id", sessionId)
-    .maybeSingle<
-      Pick<
-        GenerationSession,
-        | "free_generations_used"
-        | "paid_credits"
-        | "paid_generations_used"
-        | "standard_credits"
-        | "holographic_credits"
-      >
-    >();
-
-  if (error || !data) {
-    logEvent("generation_record_lookup_failed", { reason: error?.code || "missing_session" });
-    return;
-  }
-
-  const update = {
-    standard_credits:
-      edition === "standard"
-        ? Math.max(data.standard_credits - 1, 0)
-        : data.standard_credits,
-    holographic_credits:
-      edition === "holographic"
-        ? Math.max(data.holographic_credits - 1, 0)
-        : data.holographic_credits,
-    paid_generations_used: data.paid_generations_used + 1,
-  };
-
-  const { error: updateError } = await supabase
-    .from("generation_sessions")
-    .update({ ...update, updated_at: new Date().toISOString() })
-    .eq("session_id", sessionId);
-
-  if (updateError) logEvent("generation_record_update_failed", { reason: updateError.code });
+  const { error } = await supabase.rpc("complete_generation_purchase", {
+    target_session_id: sessionId,
+    target_edition: edition,
+  });
+  if (error) logEvent("generation_record_update_failed", { reason: error.code });
 }
 
 export async function addGenerationCredits(

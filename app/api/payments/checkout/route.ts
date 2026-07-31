@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { readLienSessionDetails } from "@/lib/lien-session";
+import { createPendingOrder, LIEN_EDITION_PRICES } from "@/lib/payments";
 import { assertSameOrigin, checkoutSchema, getClientKey, logEvent, rateLimit } from "@/lib/security";
 
 export const runtime = "nodejs";
@@ -25,8 +28,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Pixel LIEN-ID checkout is not configured yet." }, { status: 503 });
   }
 
+  const lienSession = readLienSessionDetails((await cookies()).get("lien_session")?.value);
+  if (!lienSession?.userId || !lienSession.profile.lienId) {
+    return NextResponse.json({ error: "Connect your Telegram LIEN ID before checkout." }, { status: 401 });
+  }
+
   const holographic = parsed.data.edition === "holographic";
-  const amount = holographic ? "700" : "300";
+  const amount = String(LIEN_EDITION_PRICES[parsed.data.edition]);
   const productName = holographic
     ? "Holographic Pixel LIEN-ID Generation"
     : "Standard Pixel LIEN-ID Generation";
@@ -44,6 +52,11 @@ export async function POST(request: Request) {
     "metadata[session_id]": parsed.data.sessionId,
     "metadata[product]": "pixel_lien_id_generation",
     "metadata[edition]": parsed.data.edition,
+    "metadata[user_id]": lienSession.userId,
+    "metadata[lien_id]": lienSession.profile.lienId,
+    "payment_intent_data[metadata][user_id]": lienSession.userId,
+    "payment_intent_data[metadata][lien_id]": lienSession.profile.lienId,
+    "payment_intent_data[metadata][edition]": parsed.data.edition,
   });
 
   const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -54,11 +67,26 @@ export async function POST(request: Request) {
     },
     body,
   });
-  const payload = (await response.json()) as { url?: string; error?: { message?: string } };
+  const payload = (await response.json()) as { id?: string; url?: string; error?: { message?: string } };
 
-  if (!response.ok || !payload.url) {
+  if (!response.ok || !payload.url || !payload.id) {
     logEvent("checkout_create_failed", { status: response.status, message: payload.error?.message?.slice(0, 120) });
     return NextResponse.json({ error: "Unable to start checkout." }, { status: 502 });
+  }
+
+  const order = await createPendingOrder({
+    checkoutSessionId: payload.id,
+    generationSessionId: parsed.data.sessionId,
+    userId: lienSession.userId,
+    lienId: lienSession.profile.lienId,
+    edition: parsed.data.edition,
+  });
+  if (!order.ok) {
+    await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(payload.id)}/expire`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secretKey}` },
+    }).catch(() => undefined);
+    return NextResponse.json({ error: order.error }, { status: 503 });
   }
 
   logEvent("checkout_created", {

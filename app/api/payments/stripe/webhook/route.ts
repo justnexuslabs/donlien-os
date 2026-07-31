@@ -1,21 +1,27 @@
 import { NextResponse } from "next/server";
-import { addGenerationCredits } from "@/lib/generation";
 import { logEvent } from "@/lib/security";
 import { verifyStripeSignature } from "@/lib/stripe";
+import { confirmStripePurchase, LIEN_EDITION_PRICES } from "@/lib/payments";
 
 export const runtime = "nodejs";
 
 type StripeCheckoutCompleted = {
+  id?: string;
   type?: string;
   data?: {
     object?: {
       id?: string;
       client_reference_id?: string | null;
       payment_status?: string;
+      amount_total?: number | null;
+      currency?: string | null;
+      payment_intent?: string | null;
       metadata?: {
         session_id?: string;
         product?: string;
         edition?: string;
+        user_id?: string;
+        lien_id?: string;
       };
     };
   };
@@ -35,28 +41,46 @@ export async function POST(request: Request) {
   }
 
   const event = JSON.parse(payload) as StripeCheckoutCompleted;
-  if (event.type !== "checkout.session.completed") {
+  if (
+    event.type !== "checkout.session.completed" &&
+    event.type !== "checkout.session.async_payment_succeeded"
+  ) {
     return NextResponse.json({ received: true });
   }
 
   const checkout = event.data?.object;
   const sessionId = checkout?.metadata?.session_id || checkout?.client_reference_id;
   const edition = checkout?.metadata?.edition;
+  const userId = checkout?.metadata?.user_id;
+  const lienId = checkout?.metadata?.lien_id;
   if (
     checkout?.payment_status !== "paid" ||
     checkout.metadata?.product !== "pixel_lien_id_generation" ||
     !sessionId ||
-    (edition !== "standard" && edition !== "holographic")
+    (edition !== "standard" && edition !== "holographic") ||
+    !event.id || !checkout.id || !userId || !lienId ||
+    checkout.currency?.toLowerCase() !== "usd" ||
+    checkout.amount_total !== LIEN_EDITION_PRICES[edition]
   ) {
     logEvent("stripe_checkout_ignored", { checkoutId: checkout?.id, status: checkout?.payment_status });
     return NextResponse.json({ received: true });
   }
 
-  const credited = await addGenerationCredits(sessionId, edition, 1);
-  if (!credited.ok) {
-    return NextResponse.json({ error: credited.error }, { status: 500 });
+  const recorded = await confirmStripePurchase({
+    eventId: event.id,
+    checkoutSessionId: checkout.id,
+    paymentIntentId: checkout.payment_intent || undefined,
+    generationSessionId: sessionId,
+    userId,
+    lienId,
+    edition,
+    amountCents: checkout.amount_total,
+    currency: checkout.currency,
+  });
+  if (!recorded.ok) {
+    return NextResponse.json({ error: recorded.error }, { status: 500 });
   }
 
-  logEvent("stripe_generation_credit_added", { checkoutId: checkout.id });
+  logEvent("stripe_purchase_confirmed", { checkoutId: checkout.id, duplicate: recorded.duplicate });
   return NextResponse.json({ received: true });
 }
