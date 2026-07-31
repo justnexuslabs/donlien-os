@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Download, RefreshCw, Share2 } from "lucide-react";
+import Link from "next/link";
 import { toPng } from "html-to-image";
 import type { LienProfile } from "@/lib/lien-session";
 import { shareLienCard } from "@/lib/share-lien-card";
@@ -119,7 +120,23 @@ export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }
             <Share2 size={17} /> Share to X
           </button>
         </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <Link href={`/verify/${profile.lienId}`} className="clip-hud border border-cyan-300/70 px-4 py-3 text-center font-display uppercase text-cyan-100">
+            Verify card
+          </Link>
+          <Link href="https://t.me/LIENASCENSIONBOT/Play" className="clip-hud border border-lime-300/70 px-4 py-3 text-center font-display uppercase text-lime-100">
+            Play Ascension
+          </Link>
+        </div>
+        <div className="mt-5 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center text-xs uppercase tracking-wider text-zinc-300">
+          <div><strong className="block text-lg text-yellow-100">{profile.inventory.length}</strong>Items</div>
+          <div><strong className="block text-lg text-cyan-100">{profile.achievements.length}</strong>Achievements</div>
+          <div><strong className="block text-lg text-fuchsia-100">{profile.referrals}</strong>Referrals</div>
+        </div>
         <p className="mt-4 text-xs uppercase tracking-widest text-lime-200">{status}</p>
+        <form action="/api/lien/logout" method="post" className="mt-4">
+          <button className="w-full border border-white/20 px-4 py-2 text-xs uppercase tracking-widest text-zinc-400">Disconnect</button>
+        </form>
       </div>
     </section>
   );

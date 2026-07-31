@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useState, type CSSProperties, type PointerEvent } from "react";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, BarChart3, Globe2, ShieldCheck } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { roleProfiles, roles } from "@/lib/content";
 
@@ -60,6 +60,12 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
         aria-label={`${data.lienName} ${data.edition} LIEN identity card`}
       >
         <div className="lien-card__foil" aria-hidden="true" />
+        {holographic ? (
+          <div className="lien-card__holo-crown" aria-hidden="true">
+            <span>LIEN-ID</span>
+            <small>HOLOGRAPHIC EDITION</small>
+          </div>
+        ) : null}
         <header className="lien-card__header">
           <div>
             <p className="lien-card__brand">LIEN-ID</p>
@@ -81,13 +87,13 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
         <div className="lien-card__identity">
           <p className="lien-card__name">{data.lienName}</p>
           <p className="lien-card__role">{role} · LEVEL {data.level}</p>
-          <p className="lien-card__id">{data.lienId}</p>
+          <p className="lien-card__id"><span>{data.lienId}</span></p>
         </div>
 
         <div className="lien-card__data">
-          <div><span>GLB BALANCE</span><strong>{data.glb.toLocaleString()}</strong></div>
-          <div><span>LIFETIME</span><strong>{data.lifetimePoints.toLocaleString()}</strong></div>
-          <div><span>SEASON</span><strong>{data.seasonPoints.toLocaleString()}</strong></div>
+          <div><Globe2 size={14} /><span>GLB BALANCE</span><strong>{data.glb.toLocaleString()}</strong></div>
+          <div><ShieldCheck size={14} /><span>LIFETIME</span><strong>{data.lifetimePoints.toLocaleString()}</strong></div>
+          <div><BarChart3 size={14} /><span>SEASON</span><strong>{data.seasonPoints.toLocaleString()}</strong></div>
           <div className="lien-card__qr">
             <QRCodeSVG value={verifyUrl} size={58} bgColor="#eefdf0" fgColor="#05120a" level="M" />
           </div>
