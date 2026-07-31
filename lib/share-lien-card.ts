@@ -1,4 +1,4 @@
-import { toBlob } from "html-to-image";
+import { toPng } from "html-to-image";
 
 type ShareLienCardInput = {
   card: HTMLElement;
@@ -54,13 +54,17 @@ export async function shareLienCard(input: ShareLienCardInput) {
     return "X post canceled.";
   }
 
-  const blob = await toBlob(input.card, {
+  // toPng is already proven by the card download flow and is more reliable
+  // than canvas.toBlob inside Telegram's iOS webview.
+  const dataUrl = await toPng(input.card, {
     cacheBust: true,
     pixelRatio: xStatus.connected ? 2 : 3,
     backgroundColor: "#020403",
   });
-
-  if (!blob) throw new Error("The LIEN-ID card image could not be prepared.");
+  const encoded = dataUrl.split(",")[1];
+  if (!encoded) throw new Error("The LIEN-ID card image could not be prepared.");
+  const bytes = Uint8Array.from(window.atob(encoded), (character) => character.charCodeAt(0));
+  const blob = new Blob([bytes], { type: "image/png" });
 
   if (xStatus.configured && xStatus.connected) {
     const form = new FormData();
@@ -76,20 +80,26 @@ export async function shareLienCard(input: ShareLienCardInput) {
   }
 
   const fileName = `${input.lienName}-${input.edition}-${input.seasonId}.png`;
-  const file = new File([blob], fileName, { type: "image/png" });
-  const nativeShare = {
-    title: `${input.lienName} · LIEN-ID`,
-    text,
-    files: [file],
-  };
+  try {
+    const file = new File([blob], fileName, { type: "image/png" });
+    const nativeShare = {
+      title: `${input.lienName} · LIEN-ID`,
+      text,
+      files: [file],
+    };
 
-  if (
-    typeof navigator.share === "function" &&
-    typeof navigator.canShare === "function" &&
-    navigator.canShare(nativeShare)
-  ) {
-    await navigator.share(nativeShare);
-    return "Share sheet opened with your verified card attached. Choose X to post it.";
+    if (
+      typeof navigator.share === "function" &&
+      typeof navigator.canShare === "function" &&
+      navigator.canShare(nativeShare)
+    ) {
+      await navigator.share(nativeShare);
+      return "Share sheet opened with your verified card attached. Choose X to post it.";
+    }
+  } catch (error) {
+    // A user cancel must remain a cancel. Telegram/Safari compatibility errors
+    // continue into the download + X intent fallback below.
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
   }
 
   const downloadUrl = URL.createObjectURL(blob);
