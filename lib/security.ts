@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "crypto";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
-import { genesisStatuses, roles } from "./content";
+import { genesisStatuses, roles, seasonOneRoles } from "./content";
 import { sanitizeUserText } from "./naming";
 import { getSupabaseAdmin } from "./supabase";
 import { readLienSessionDetails } from "./lien-session";
@@ -16,6 +16,7 @@ export const lienSchema = z.object({
   humanName: z.string().trim().min(1).max(80),
   lienName: z.string().trim().min(1).max(80),
   role: roleSchema,
+  seasonId: z.string().trim().regex(/^S\d{2}$/).default("S01"),
   portraitUrl: z.string().url().optional(),
   portraitDataUrl: z.string().startsWith("data:image/").max(2_000_000).optional(),
   genesisStatus: z.enum(genesisStatuses).default("candidate"),
@@ -25,7 +26,7 @@ export const lienSchema = z.object({
 export const transformFieldsSchema = z.object({
   sessionId: z.string().trim().min(8).max(128),
   humanName: z.string().trim().min(1).max(80),
-  role: roleSchema,
+  role: z.enum(seasonOneRoles),
   edition: z.enum(["standard", "holographic"]).default("standard"),
 });
 

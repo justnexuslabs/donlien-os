@@ -7,7 +7,7 @@ import { shareLienCard } from "@/lib/share-lien-card";
 import { HudPanel } from "./HudPanel";
 import { LienIdentityCard } from "./LienIdentityCard";
 import { makeLienName } from "@/lib/naming";
-import { roleProfiles, roles } from "@/lib/content";
+import { roleProfiles, seasonOneRoles } from "@/lib/content";
 
 type Result = {
   lienId?: string;
@@ -41,7 +41,7 @@ export function BecomeLienWizard({
   const [step, setStep] = useState(1);
   const [sessionId, setSessionId] = useState("");
   const [humanName, setHumanName] = useState("");
-  const [role, setRole] = useState<(typeof roles)[number]>("Builder");
+  const [role, setRole] = useState<(typeof seasonOneRoles)[number]>("Builder");
   const [edition, setEdition] = useState<"standard" | "holographic">("standard");
   const [portrait, setPortrait] = useState<File | null>(null);
   const [portraitPreview, setPortraitPreview] = useState("");
@@ -249,6 +249,7 @@ export function BecomeLienWizard({
         humanName,
         lienName: result?.lienName || lienName,
         role,
+        seasonId: permanentIdentity?.seasonId || "S01",
         portraitDataUrl: result?.imageDataUrl,
         genesisStatus: "candidate",
       }),
@@ -363,7 +364,7 @@ export function BecomeLienWizard({
                 mission path it can grow into. It does not make one LIEN more valuable than another.
               </p>
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {roles.map((item) => {
+                {seasonOneRoles.map((item) => {
                   const profile = roleProfiles[item];
                   const selected = role === item;
                   return (

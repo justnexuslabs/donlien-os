@@ -11,6 +11,7 @@ import {
 } from "@/lib/security";
 import { sanitizeUserText } from "@/lib/naming";
 import { notifyLienWebhook } from "@/lib/webhook";
+import { roleProfiles } from "@/lib/content";
 
 export const runtime = "nodejs";
 
@@ -33,12 +34,15 @@ export async function POST(request: Request) {
   }
 
   const lienId = session.profile.lienId;
+  const roleProfile = roleProfiles[parsed.data.role];
   const record = {
     user_id: session.userId || null,
     lien_id: lienId,
     human_name: sanitizeUserText(parsed.data.humanName),
     lien_name: sanitizeUserText(parsed.data.lienName),
     role: parsed.data.role,
+    role_id: roleProfile.id,
+    role_version: roleProfile.version,
     portrait_url: null,
     portrait_data_url: null,
     genesis_status: parsed.data.genesisStatus,
@@ -64,6 +68,20 @@ export async function POST(request: Request) {
   if (error) {
     logEvent("lien_save_failed", { role: record.role, reason: error.code });
     return NextResponse.json({ error: "Unable to save LIEN identity." }, { status: 500 });
+  }
+
+  const { error: roleError } = await supabase.from("lien_season_roles").upsert(
+    {
+      lien_id: lienId,
+      season_id: parsed.data.seasonId,
+      role_id: roleProfile.id,
+      role_version: roleProfile.version,
+    },
+    { onConflict: "lien_id,season_id" },
+  );
+  if (roleError) {
+    logEvent("lien_role_save_failed", { roleId: roleProfile.id, reason: roleError.code });
+    return NextResponse.json({ error: "Identity saved, but the seasonal role could not be assigned." }, { status: 500 });
   }
 
   const webhookStatus = await notifyLienWebhook({

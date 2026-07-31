@@ -53,7 +53,9 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
     return (
       <article
         ref={ref}
-        className={`lien-card ${holographic ? "lien-card--holographic" : "lien-card--standard"}`}
+        className={`lien-card lien-card--role-${profile.id} ${holographic ? "lien-card--holographic" : "lien-card--standard"}`}
+        data-role-id={profile.id}
+        data-role-version={profile.version}
         style={style}
         onPointerMove={move}
         onPointerLeave={() => setTilt({ x: 0, y: 0, glowX: 50, glowY: 30 })}
@@ -81,12 +83,16 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
           {/* Generated portrait data URLs cannot be optimized by next/image. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={data.portraitUrl} alt={`${data.lienName} LIEN portrait`} />
-          <div className="lien-card__role-mark">{profile.insignia}</div>
+          <div className="lien-card__role-effect" aria-hidden="true" />
+          <div className="lien-card__role-mark" title={profile.insignia} aria-label={`${role} emblem`}>
+            {profile.emblemGlyph}
+          </div>
         </div>
 
         <div className="lien-card__identity">
           <p className="lien-card__name">{data.lienName}</p>
           <p className="lien-card__role">{role} · LEVEL {data.level}</p>
+          <p className="lien-card__role-description">{profile.purpose}</p>
           <p className="lien-card__id"><span>{data.lienId}</span></p>
         </div>
 

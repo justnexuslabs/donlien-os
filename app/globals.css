@@ -371,6 +371,8 @@ select {
 }
 
 .lien-card__portrait {
+  --role-accent: #a3e635;
+  --role-secondary: #67e8f9;
   position: relative;
   margin-top: 0.7rem;
   height: 310px;
@@ -379,11 +381,46 @@ select {
   background: #04100a;
 }
 
+.lien-card--role-guardian .lien-card__portrait { --role-accent: #facc15; --role-secondary: #84cc16; }
+.lien-card--role-strategist .lien-card__portrait { --role-accent: #a78bfa; --role-secondary: #22d3ee; }
+.lien-card--role-builder .lien-card__portrait { --role-accent: #22d3ee; --role-secondary: #f59e0b; }
+.lien-card--role-creator .lien-card__portrait { --role-accent: #f472b6; --role-secondary: #22d3ee; }
+.lien-card--role-diplomat .lien-card__portrait { --role-accent: #2dd4bf; --role-secondary: #fbbf24; }
+.lien-card--role-explorer .lien-card__portrait { --role-accent: #60a5fa; --role-secondary: #cbd5e1; }
+
 .lien-card__portrait img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   image-rendering: pixelated;
+}
+
+.lien-card__role-effect {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.42;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.lien-card--role-guardian .lien-card__role-effect {
+  background: radial-gradient(ellipse at 50% 58%, transparent 0 43%, color-mix(in srgb, var(--role-accent) 70%, transparent) 44% 46%, transparent 48%);
+}
+
+.lien-card--role-strategist .lien-card__role-effect {
+  background: linear-gradient(30deg, transparent 48%, var(--role-accent) 49% 50%, transparent 51%), linear-gradient(-30deg, transparent 48%, var(--role-secondary) 49% 50%, transparent 51%);
+  background-size: 84px 84px;
+}
+
+.lien-card--role-builder .lien-card__role-effect {
+  background-image: linear-gradient(var(--role-accent) 1px, transparent 1px), linear-gradient(90deg, var(--role-secondary) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.lien-card--role-creator .lien-card__role-effect {
+  background: radial-gradient(circle at 20% 25%, var(--role-accent) 0 2px, transparent 3px), radial-gradient(circle at 76% 34%, var(--role-secondary) 0 3px, transparent 4px), radial-gradient(circle at 68% 78%, #facc15 0 2px, transparent 3px);
+  background-size: 54px 66px, 74px 62px, 82px 78px;
 }
 
 .lien-card--holographic .lien-card__portrait {
@@ -410,13 +447,18 @@ select {
   position: absolute;
   right: 0.35rem;
   bottom: 0.35rem;
-  max-width: 72%;
-  padding: 0.25rem 0.4rem;
-  background: rgba(0, 0, 0, 0.78);
-  color: #d9f99d;
-  font-size: 0.48rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  z-index: 2;
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid var(--role-accent);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.82);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--role-accent) 60%, transparent);
+  color: var(--role-accent);
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .lien-card__identity {
@@ -441,6 +483,13 @@ select {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.09em;
+}
+
+.lien-card__role-description {
+  margin-top: 0.28rem;
+  color: #d4d4d8;
+  font-size: 0.55rem;
+  line-height: 1.35;
 }
 
 .lien-card__id {
