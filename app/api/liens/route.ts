@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { readLienSessionDetails } from "@/lib/lien-session";
 import {
   assertSameOrigin,
   getClientKey,
   lienSchema,
   logEvent,
-  makeLienId,
   rateLimit,
 } from "@/lib/security";
 import { sanitizeUserText } from "@/lib/naming";
@@ -17,6 +18,10 @@ export async function POST(request: Request) {
   if (!(await assertSameOrigin())) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
+  const session = readLienSessionDetails((await cookies()).get("lien_session")?.value);
+  if (!session) {
+    return NextResponse.json({ error: "Connect your Telegram LIEN ID first." }, { status: 401 });
+  }
   const limited = await rateLimit(await getClientKey("liens"), 20, 60 * 60 * 1000);
   if (!limited.ok) {
     return NextResponse.json({ error: "Rate limit reached. Try again later." }, { status: 429 });
@@ -27,8 +32,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid LIEN identity payload." }, { status: 400 });
   }
 
-  const lienId = makeLienId();
+  const lienId = session.profile.lienId;
   const record = {
+    user_id: session.userId || null,
     lien_id: lienId,
     human_name: sanitizeUserText(parsed.data.humanName),
     lien_name: sanitizeUserText(parsed.data.lienName),
@@ -54,7 +60,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const { error } = await supabase.from("liens").insert(record);
+  const { error } = await supabase.from("liens").upsert(record, { onConflict: "lien_id" });
   if (error) {
     logEvent("lien_save_failed", { role: record.role, reason: error.code });
     return NextResponse.json({ error: "Unable to save LIEN identity." }, { status: 500 });

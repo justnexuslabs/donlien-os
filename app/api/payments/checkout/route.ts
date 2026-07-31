@@ -19,22 +19,31 @@ export async function POST(request: Request) {
   }
 
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  const priceId = process.env.STRIPE_IMAGE_CREDIT_PRICE_ID;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-  if (!secretKey || !priceId) {
+  if (!secretKey) {
     logEvent("checkout_missing_stripe_config");
-    return NextResponse.json({ error: "Paid retries are not configured yet." }, { status: 503 });
+    return NextResponse.json({ error: "Pixel LIEN-ID checkout is not configured yet." }, { status: 503 });
   }
 
+  const holographic = parsed.data.edition === "holographic";
+  const amount = holographic ? "700" : "300";
+  const productName = holographic
+    ? "Holographic Pixel LIEN-ID Generation"
+    : "Standard Pixel LIEN-ID Generation";
   const body = new URLSearchParams({
     mode: "payment",
-    "line_items[0][price]": priceId,
+    "line_items[0][price_data][currency]": "usd",
+    "line_items[0][price_data][unit_amount]": amount,
+    "line_items[0][price_data][product_data][name]": productName,
+    "line_items[0][price_data][product_data][description]":
+      "One AI-generated pixel LIEN identity preview. Saving is optional.",
     "line_items[0][quantity]": "1",
-    success_url: `${siteUrl.replace(/\/$/, "")}/become-a-lien?payment=success`,
+    success_url: `${siteUrl.replace(/\/$/, "")}/become-a-lien?payment=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl.replace(/\/$/, "")}/become-a-lien?payment=cancelled`,
     client_reference_id: parsed.data.sessionId,
     "metadata[session_id]": parsed.data.sessionId,
-    "metadata[product]": "donlien_image_retry",
+    "metadata[product]": "pixel_lien_id_generation",
+    "metadata[edition]": parsed.data.edition,
   });
 
   const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -52,6 +61,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unable to start checkout." }, { status: 502 });
   }
 
-  logEvent("checkout_created", { product: "donlien_image_retry" });
+  logEvent("checkout_created", {
+    product: "pixel_lien_id_generation",
+    edition: parsed.data.edition,
+    amount: Number(amount),
+  });
   return NextResponse.json({ url: payload.url });
 }

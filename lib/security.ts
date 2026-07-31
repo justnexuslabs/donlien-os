@@ -1,9 +1,10 @@
-import { createHash, randomUUID, timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { genesisStatuses, roles } from "./content";
 import { sanitizeUserText } from "./naming";
 import { getSupabaseAdmin } from "./supabase";
+import { readLienSessionDetails } from "./lien-session";
 
 export const MAX_PORTRAIT_BYTES = 8 * 1024 * 1024;
 export const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -25,10 +26,12 @@ export const transformFieldsSchema = z.object({
   sessionId: z.string().trim().min(8).max(128),
   humanName: z.string().trim().min(1).max(80),
   role: roleSchema,
+  edition: z.enum(["standard", "holographic"]).default("standard"),
 });
 
 export const checkoutSchema = z.object({
   sessionId: z.string().trim().min(8).max(128),
+  edition: z.enum(["standard", "holographic"]),
 });
 
 export const adminLoginSchema = z.object({
@@ -53,10 +56,6 @@ export const adminLienQuerySchema = z.object({
   from: z.string().trim().max(40).optional(),
   to: z.string().trim().max(40).optional(),
 });
-
-export function makeLienId() {
-  return `LIEN-${randomUUID().slice(0, 8).toUpperCase()}`;
-}
 
 function memoryRateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
@@ -176,4 +175,19 @@ export async function hasAdminSession() {
   if (!Number.isFinite(expires) || expires < Date.now() || !token) return false;
   const expected = createHash("sha256").update(`${process.env.ADMIN_ACCESS_CODE}:${expires}`).digest("hex");
   return compareSecret(token, expected);
+}
+
+export function isPermanentLienAdmin(lienId?: string | null) {
+  if (!lienId) return false;
+  const allowed = (process.env.ADMIN_LIEN_IDS || "")
+    .split(",")
+    .map((value) => value.trim().toUpperCase())
+    .filter(Boolean);
+  return allowed.includes(lienId.trim().toUpperCase());
+}
+
+export async function hasLienAdminAccess() {
+  if (await hasAdminSession()) return true;
+  const session = readLienSessionDetails((await cookies()).get("lien_session")?.value);
+  return isPermanentLienAdmin(session?.profile.lienId);
 }

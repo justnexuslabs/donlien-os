@@ -27,6 +27,80 @@ export const navItems = [
 
 export const roles = ["Builder", "Strategist", "Diplomat", "Creator", "Explorer", "Guardian"] as const;
 
+export const roleProfiles = {
+  Builder: {
+    title: "Builder · Architect of Possibility",
+    purpose: "Turns ambitious ideas into useful systems, tools, communities, and lasting foundations.",
+    charge: "Build what helps others rise. Leave every system stronger than you found it.",
+    traits: ["Practical", "Inventive", "Persistent"],
+    insignia: "Interlocking orbital frame",
+    palette: "electric cyan, construction amber, and alien green",
+    visualPrompt:
+      "Depict a LIEN systems architect in a structured utility exosuit with modular tool interfaces, luminous blueprint lines, and an interlocking orbital-frame insignia. Use a confident hands-ready pose inside a futuristic construction bay. The silhouette must communicate engineering, invention, and dependable creation.",
+  },
+  Strategist: {
+    title: "Strategist · Navigator of Outcomes",
+    purpose: "Sees patterns, anticipates consequences, and coordinates people toward a shared victory.",
+    charge: "Think beyond the next move. Use foresight in service of the whole LIENIVERSE.",
+    traits: ["Analytical", "Decisive", "Far-seeing"],
+    insignia: "Three-point signal compass",
+    palette: "deep violet, tactical cyan, and alien green",
+    visualPrompt:
+      "Depict a LIEN mission strategist in a refined command coat with a three-point signal-compass insignia, layered holographic tactical maps, and subtle data-grid details. Use a composed observant pose in an orbital command chamber. The silhouette must communicate foresight, coordination, and calm authority.",
+  },
+  Diplomat: {
+    title: "Diplomat · Bridge Between Worlds",
+    purpose: "Creates trust across cultures, resolves conflict, and protects dignity in every exchange.",
+    charge: "Listen before leading. Turn difference into understanding and understanding into unity.",
+    traits: ["Empathetic", "Eloquent", "Unifying"],
+    insignia: "Twin worlds joined by a signal arc",
+    palette: "luminous teal, diplomatic gold, and alien green",
+    visualPrompt:
+      "Depict a LIEN interworld envoy in an elegant ceremonial suit with a twin-world signal-arc insignia, balanced symmetrical tailoring, and subtle universal-language glyphs. Use an open welcoming pose in a luminous embassy atrium. The silhouette must communicate empathy, trust, unity, and dignified influence.",
+  },
+  Creator: {
+    title: "Creator · Keeper of Culture",
+    purpose: "Transforms imagination into art, stories, experiences, and symbols that move the community.",
+    charge: "Make the unseen visible. Create work that gives the LIENIVERSE a soul.",
+    traits: ["Expressive", "Original", "Visionary"],
+    insignia: "Radiant prism spark",
+    palette: "neon magenta, prismatic cyan, and alien green",
+    visualPrompt:
+      "Depict a LIEN culture-maker in an iridescent studio jacket with a radiant prism-spark insignia, controlled creative energy trails, and pixel-art production tools. Use an expressive poised stance in a future media atelier. The silhouette must communicate originality, storytelling, artistic confidence, and cultural vision.",
+  },
+  Explorer: {
+    title: "Explorer · Seeker Beyond the Signal",
+    purpose: "Ventures into unknown territory, gathers knowledge, and expands the map for everyone behind them.",
+    charge: "Meet the unknown with courage and curiosity. Return with knowledge the community can use.",
+    traits: ["Curious", "Adaptive", "Courageous"],
+    insignia: "Rising star over an open horizon",
+    palette: "stellar blue, expedition silver, and alien green",
+    visualPrompt:
+      "Depict a LIEN deep-signal explorer in a sleek expedition suit with a rising-star horizon insignia, compact navigation instruments, and layered star-chart details. Use a ready forward-looking pose at the threshold of an alien landscape or portal. The silhouette must communicate curiosity, adaptability, discovery, and brave movement.",
+  },
+  Guardian: {
+    title: "Guardian · Shield of LIENITY",
+    purpose: "Protects people, knowledge, and shared spaces while holding power accountable.",
+    charge: "Stand firm without losing compassion. Protect the future, not merely the gate.",
+    traits: ["Loyal", "Disciplined", "Protective"],
+    insignia: "Living shield around a central star",
+    palette: "obsidian, protective gold, and alien green",
+    visualPrompt:
+      "Depict a LIEN protector in streamlined ceremonial armor with a living-shield star insignia, restrained energy barriers, and strong protective geometry. Use a grounded vigilant pose before a secure LIEN gateway. The silhouette must communicate stewardship, discipline, compassion, and formidable protection without aggression.",
+  },
+} satisfies Record<
+  (typeof roles)[number],
+  {
+    title: string;
+    purpose: string;
+    charge: string;
+    traits: readonly string[];
+    insignia: string;
+    palette: string;
+    visualPrompt: string;
+  }
+>;
+
 export const genesisStatuses = ["candidate", "eligible", "waitlisted", "claimed", "not_applied"] as const;
 
 export const rarity = [

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { adminLienQuerySchema, getSignupState, hasAdminSession, logEvent } from "@/lib/security";
+import { adminLienQuerySchema, getSignupState, hasLienAdminAccess, logEvent } from "@/lib/security";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ function csvCell(value: unknown) {
 }
 
 export async function GET(request: Request) {
-  if (!(await hasAdminSession())) {
+  if (!(await hasLienAdminAccess())) {
     return NextResponse.json({ error: "Admin session required." }, { status: 401 });
   }
   const supabase = getSupabaseAdmin();

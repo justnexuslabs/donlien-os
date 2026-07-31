@@ -1,9 +1,15 @@
+import { cookies } from "next/headers";
 import { BecomeLienWizard } from "@/components/BecomeLienWizard";
 import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { PageFrame } from "@/components/PageFrame";
 import { donLienDecks, pageImages } from "@/lib/content";
+import { readLienSession } from "@/lib/lien-session";
+import { hasAdminSession, isPermanentLienAdmin } from "@/lib/security";
 
-export default function BecomeLienPage() {
+export default async function BecomeLienPage() {
+  const profile = readLienSession((await cookies()).get("lien_session")?.value);
+  const freeGeneration =
+    (await hasAdminSession()) || isPermanentLienAdmin(profile?.lienId);
   return (
     <PageFrame image={pageImages.home}>
       <section className="mx-auto grid min-h-[calc(100svh-6rem)] max-w-6xl content-end gap-5 px-4 pb-10 md:px-8">
@@ -16,7 +22,10 @@ export default function BecomeLienPage() {
         </div>
       </section>
       <DonLienStoryDeck {...donLienDecks.become} />
-      <BecomeLienWizard />
+      <BecomeLienWizard
+        freeGeneration={freeGeneration}
+        permanentIdentity={profile}
+      />
     </PageFrame>
   );
 }

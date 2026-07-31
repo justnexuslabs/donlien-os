@@ -8,6 +8,8 @@ const files = [
   "app/api/admin/liens/export/route.ts",
   "next.config.ts",
   "supabase/schema.sql",
+  "lib/lien-session.ts",
+  "lib/permanent-identity.ts",
   ".gitignore",
 ];
 
@@ -19,10 +21,15 @@ const checks = [
   [content["app/api/transform/route.ts"].includes("validatePortrait"), "portrait validation is enforced"],
   [content["app/api/transform/route.ts"].includes("assertSameOrigin"), "transform route checks same-origin"],
   [content["app/api/signup-events/route.ts"].includes("assertSameOrigin"), "signup tracking checks same-origin"],
-  [content["app/api/admin/liens/export/route.ts"].includes("hasAdminSession"), "CSV export is admin protected"],
+  [content["app/api/admin/liens/export/route.ts"].includes("hasLienAdminAccess"), "CSV export is admin protected"],
   [content["next.config.ts"].includes("Content-Security-Policy"), "CSP header is configured"],
   [content["next.config.ts"].includes("frame-ancestors 'none'"), "frame ancestors are denied"],
   [content["supabase/schema.sql"].includes("enable row level security"), "Supabase RLS is enabled"],
+  [content["supabase/schema.sql"].includes("resolve_telegram_identity"), "permanent identity resolver exists"],
+  [content["supabase/schema.sql"].includes("grant execute on function public.resolve_telegram_identity"), "identity resolver is service-role only"],
+  [content["lib/lien-session.ts"].includes("legacyPlayerId"), "legacy Telegram player bridge remains compatible"],
+  [content["lib/lien-session.ts"].includes("userId?: string"), "sessions support permanent user UUIDs"],
+  [content["lib/permanent-identity.ts"].includes("resolveTelegramIdentity"), "Telegram login resolves a permanent identity"],
   [content[".gitignore"].includes(".env*"), ".env files are ignored"],
 ];
 

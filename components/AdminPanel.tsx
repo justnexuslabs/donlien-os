@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HudPanel } from "./HudPanel";
 import { roles } from "@/lib/content";
 
@@ -54,6 +54,14 @@ export function AdminPanel({ active }: AdminPanelProps) {
     setStatus(`Loaded ${payload.records?.length || 0} records.`);
   }
 
+  useEffect(() => {
+    if (!authed) return;
+    const timer = window.setTimeout(() => void refresh(), 0);
+    return () => window.clearTimeout(timer);
+    // Initial owner/admin dashboard load uses the default filters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed]);
+
   return (
     <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 md:px-8">
       <div className="text-center">
@@ -72,6 +80,20 @@ export function AdminPanel({ active }: AdminPanelProps) {
         </HudPanel>
       ) : (
         <HudPanel title="Newest Identities" accent="#35ECFF">
+          <div className="mb-5 grid gap-3 sm:grid-cols-3">
+            <div className="border border-lime-300/40 bg-lime-400/5 p-4">
+              <p className="font-display uppercase text-lime-200">Owner access</p>
+              <p className="mt-2 text-sm text-zinc-300">Permanent LIEN authorization active</p>
+            </div>
+            <div className="border border-cyan-300/40 bg-cyan-400/5 p-4">
+              <p className="font-display uppercase text-cyan-200">Identity records</p>
+              <p className="mt-2 text-2xl font-black">{records.length}</p>
+            </div>
+            <div className="border border-fuchsia-300/40 bg-fuchsia-400/5 p-4">
+              <p className="font-display uppercase text-fuchsia-200">Generation pricing</p>
+              <p className="mt-2 text-sm text-zinc-300">Standard $3 · Holographic $7</p>
+            </div>
+          </div>
           <div className="mb-4 grid gap-3 md:grid-cols-4">
             <label className="grid gap-1 text-sm">
               <span className="font-display uppercase text-cyan-200">Role</span>

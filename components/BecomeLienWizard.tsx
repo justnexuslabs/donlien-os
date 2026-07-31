@@ -1,32 +1,57 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Share2, Sparkles } from "lucide-react";
+import { toPng } from "html-to-image";
+import { shareLienCard } from "@/lib/share-lien-card";
 import { HudPanel } from "./HudPanel";
+import { LienIdentityCard } from "./LienIdentityCard";
 import { makeLienName } from "@/lib/naming";
-import { roles } from "@/lib/content";
+import { roleProfiles, roles } from "@/lib/content";
 
 type Result = {
-  lienId: string;
+  lienId?: string;
   lienName: string;
   imageDataUrl?: string;
+  edition?: "standard" | "holographic";
 };
 
-export function BecomeLienWizard() {
+type PermanentIdentity = {
+  lienId: string;
+  lienName: string;
+  avatarUrl: string;
+  role: string;
+  level: number;
+  xp: number;
+  glb: number;
+  lifetimePoints: number;
+  seasonId: string;
+  seasonName: string;
+  seasonPoints: number;
+  cardEdition: "standard" | "holographic";
+};
+
+export function BecomeLienWizard({
+  permanentIdentity,
+  freeGeneration,
+}: {
+  permanentIdentity: PermanentIdentity | null;
+  freeGeneration: boolean;
+}) {
   const [step, setStep] = useState(1);
-  const [sessionId] = useState(() => {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-    return `signup-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-  });
+  const [sessionId, setSessionId] = useState("");
   const [humanName, setHumanName] = useState("");
   const [role, setRole] = useState<(typeof roles)[number]>("Builder");
+  const [edition, setEdition] = useState<"standard" | "holographic">("standard");
   const [portrait, setPortrait] = useState<File | null>(null);
   const [portraitPreview, setPortraitPreview] = useState("");
   const [status, setStatus] = useState("");
   const [paymentRequired, setPaymentRequired] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const cardRef = useRef<HTMLElement>(null);
   const lienName = useMemo(() => makeLienName(humanName || "New"), [humanName]);
+  const selectedRole = roleProfiles[role];
   const stage = step === 1 ? "human_input" : step === 2 ? "upload" : step === 3 ? "review" : "activation";
 
   async function trackSignupStage(nextStage = stage, completed = false, nextResult = result) {
@@ -51,11 +76,37 @@ export function BecomeLienWizard() {
   }
 
   useEffect(() => {
+    const stored = window.localStorage.getItem("donlien_generation_session");
+    const next =
+      stored ||
+      (typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `signup-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
+    window.localStorage.setItem("donlien_generation_session", next);
+    const payment = new URLSearchParams(window.location.search).get("payment");
+    const timer = window.setTimeout(() => {
+      setSessionId(next);
+      if (payment === "success") {
+        setStatus("Payment received. Your generation credit will appear as soon as Stripe confirms it.");
+      }
+      if (payment === "cancelled") {
+        setStatus("Checkout cancelled. Your current LIEN identity is unchanged.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!sessionId) return;
     void trackSignupStage(stage, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
+  }, [stage, sessionId]);
 
   async function transform() {
+    if (!permanentIdentity) {
+      setStatus("Connect your Telegram LIEN ID first so this avatar receives your permanent ID.");
+      return;
+    }
     if (!portrait) {
       setStatus("Upload a JPG, PNG, or WEBP portrait first.");
       return;
@@ -67,6 +118,7 @@ export function BecomeLienWizard() {
     form.set("sessionId", sessionId);
     form.set("humanName", humanName);
     form.set("role", role);
+    form.set("edition", edition);
     form.set("portrait", portrait);
     const response = await fetch("/api/transform", { method: "POST", body: form });
     const payload = await response.json();
@@ -76,27 +128,30 @@ export function BecomeLienWizard() {
         setStatus(payload.error || "Buy a retry credit to generate another image.");
         return;
       }
-      if (payload.lienId && payload.lienName && portraitPreview) {
-        setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: portraitPreview });
-        setStep(3);
-        setStatus(`${payload.error || "Live AI transform is not configured yet."} Demo review is using your uploaded portrait preview.`);
-        return;
-      }
       setStatus(payload.error || "Transform unavailable.");
       return;
     }
-    setResult({ lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: payload.imageDataUrl });
+    setResult({
+      lienId: permanentIdentity.lienId,
+      lienName: payload.lienName,
+      imageDataUrl: payload.imageDataUrl,
+      edition: payload.edition || edition,
+    });
     setStep(3);
     setStatus("Review your DEN / DonLien ID card.");
   }
 
   async function buyRetryCredit() {
     setCheckoutLoading(true);
-    setStatus("Opening secure checkout.");
+    if (!permanentIdentity) {
+      setStatus("Connect your Telegram LIEN ID before purchasing a generation.");
+      return;
+    }
+    setStatus(`Opening secure ${edition === "holographic" ? "$7" : "$3"} checkout.`);
     const response = await fetch("/api/payments/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify({ sessionId, edition }),
     });
     const payload = await response.json();
     if (!response.ok || !payload.url) {
@@ -119,7 +174,74 @@ export function BecomeLienWizard() {
     reader.readAsDataURL(file);
   }
 
+  async function downloadCard() {
+    if (!cardRef.current) {
+      setStatus("Generate your card before downloading it.");
+      return;
+    }
+    setStatus("Preparing your verified LIEN-ID card.");
+    const dataUrl = await toPng(cardRef.current, {
+      cacheBust: true,
+      pixelRatio: 3,
+      backgroundColor: "#020403",
+    });
+    const link = document.createElement("a");
+    link.download = `${result?.lienName || lienName}-${edition}-lien-id.png`;
+    link.href = dataUrl;
+    link.click();
+    setStatus("Complete LIEN-ID card downloaded.");
+  }
+
+  async function shareToX() {
+    if (!cardRef.current || !permanentIdentity) {
+      setStatus("Generate and activate your LIEN-ID before sharing it.");
+      return;
+    }
+    setStatus("Preparing your verified LIEN-ID for X.");
+    try {
+      setStatus(
+        await shareLienCard({
+          card: cardRef.current,
+          lienId: permanentIdentity.lienId,
+          lienName: result?.lienName || lienName,
+          role,
+          edition: result?.edition || edition,
+          seasonId: permanentIdentity.seasonId || "S01",
+        }),
+      );
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setStatus("Sharing canceled.");
+        return;
+      }
+      setStatus(error instanceof Error ? error.message : "Could not open X sharing.");
+    }
+  }
+
   async function saveIdentity() {
+    if (!result?.imageDataUrl) {
+      setStatus("Generate a pixel portrait before saving your identity.");
+      return;
+    }
+    setStatus("Attaching portrait to your permanent LIEN ID.");
+    const avatarResponse = await fetch("/api/lien/avatar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        imageDataUrl: result.imageDataUrl,
+        lienName: result.lienName || lienName,
+        role,
+        edition: result.edition || edition,
+      }),
+    });
+    const avatarPayload = await avatarResponse.json();
+    if (!avatarResponse.ok || !avatarPayload.profile) {
+      setStatus(
+        avatarPayload.error ||
+          "Connect your Telegram LIEN ID at /lien-id before saving this portrait.",
+      );
+      return;
+    }
     const response = await fetch("/api/liens", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -136,11 +258,19 @@ export function BecomeLienWizard() {
       setStatus(payload.error || "Could not save identity.");
       return;
     }
-    const nextResult = { lienId: payload.lienId, lienName: payload.lienName, imageDataUrl: result?.imageDataUrl };
+    const nextResult = {
+      lienId: avatarPayload.profile.lienId,
+      lienName: avatarPayload.profile.lienName,
+      imageDataUrl: avatarPayload.profile.avatarUrl || result.imageDataUrl,
+      edition: avatarPayload.profile.cardEdition || result.edition || edition,
+    };
     setResult(nextResult);
     setStep(4);
     void trackSignupStage("activation", true, nextResult);
-    setStatus(payload.warning || `Identity activation ready. Webhook: ${payload.webhookStatus || "not configured"}.`);
+    setStatus(
+      payload.warning ||
+        `Permanent LIEN identity activated. Your pixel portrait now follows your account.`,
+    );
   }
 
   return (
@@ -149,6 +279,33 @@ export function BecomeLienWizard() {
         <p className="font-display text-lime-300">LEVEL 51 INTAKE</p>
         <h1 className="font-display text-5xl font-black uppercase md:text-7xl">Become a LIEN</h1>
       </div>
+      {!permanentIdentity ? (
+        <div className="hud-panel clip-hud border border-amber-300/70 p-5 text-center">
+          <p className="font-display text-lg uppercase text-amber-200">
+            Connect LIEN ID before creating your avatar
+          </p>
+          <p className="mt-2 text-sm text-zinc-200">
+            This guarantees the finished portrait and permanent LIEN ID are issued together.
+          </p>
+          <a
+            className="clip-hud mt-4 inline-block border border-lime-300 px-5 py-3 font-display uppercase text-lime-200"
+            href="/lien-id"
+          >
+            Connect Telegram LIEN ID
+          </a>
+        </div>
+      ) : (
+        <div className="hud-panel clip-hud border border-lime-300/50 p-4 text-center">
+          <p className="font-display uppercase text-lime-200">
+            Permanent ID reserved: {permanentIdentity.lienId}
+          </p>
+          <p className="mt-1 text-sm text-zinc-300">
+            {freeGeneration
+              ? "Owner/admin account · Standard and Holographic generations are free"
+              : "Standard $3 · Holographic $7 · Preview before replacing your current avatar"}
+          </p>
+        </div>
+      )}
       <div className="grid gap-3 md:grid-cols-4">
         {["Human Input", "LIENification", "Review", "Activation"].map((label, index) => (
           <div className={`hud-panel clip-hud p-3 text-center font-display uppercase ${step === index + 1 ? "text-lime-300" : "text-zinc-400"}`} key={label}>
@@ -158,27 +315,156 @@ export function BecomeLienWizard() {
       </div>
       {step === 1 ? (
         <HudPanel title="Human Input" accent="#39FF14">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
+            <div className="border border-cyan-300/60 bg-cyan-400/5 p-4">
+              <label className="grid cursor-pointer gap-3">
+                <span className="font-display text-xl font-black uppercase text-cyan-200">
+                  1. Upload your face photo
+                </span>
+                <span className="text-sm leading-6 text-zinc-200">
+                  Required: a clear shoulders-up JPG, PNG, or WEBP. This photo is transformed
+                  into your personal pixel LIEN portrait—it is not replaced by the holographic
+                  sample card.
+                </span>
+                <input
+                  className="border border-cyan-300/50 bg-black/70 p-4"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => updatePortrait(event.target.files?.[0] || null)}
+                />
+              </label>
+              {portraitPreview ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-[120px_1fr]">
+                  {/* Local preview data URL; not uploaded until the user saves. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={portraitPreview}
+                    alt="Uploaded portrait preview"
+                    className="aspect-[4/5] w-full border border-cyan-300/50 object-cover"
+                  />
+                  <p className="self-center font-display uppercase text-lime-200">
+                    Portrait attached · ready for LIENification
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 font-display uppercase text-amber-200">
+                  No portrait attached yet
+                </p>
+              )}
+            </div>
             <label className="grid gap-2">
-              <span className="font-display uppercase">Human name</span>
+              <span className="font-display uppercase">2. Human name</span>
               <input className="border border-lime-400/30 bg-black/70 p-3" value={humanName} onChange={(event) => setHumanName(event.target.value)} maxLength={80} />
             </label>
-            <label className="grid gap-2">
-              <span className="font-display uppercase">Role</span>
-              <select className="border border-lime-400/30 bg-black/70 p-3" value={role} onChange={(event) => setRole(event.target.value as (typeof roles)[number])}>
-                {roles.map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </label>
+            <fieldset className="grid gap-3">
+              <legend className="font-display uppercase">3. Choose your LIEN path</legend>
+              <p className="text-sm leading-6 text-zinc-300">
+                Your role defines the values your identity carries, its visual design, and the
+                mission path it can grow into. It does not make one LIEN more valuable than another.
+              </p>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {roles.map((item) => {
+                  const profile = roleProfiles[item];
+                  const selected = role === item;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setRole(item)}
+                      className={`clip-hud border p-4 text-left transition ${
+                        selected
+                          ? "border-lime-300 bg-lime-400/10 text-white"
+                          : "border-white/20 bg-black/60 text-zinc-300 hover:border-lime-300/60"
+                      }`}
+                    >
+                      <span className="font-display text-lg font-black uppercase text-lime-200">
+                        {item}
+                      </span>
+                      <span className="mt-2 block text-sm leading-5">{profile.purpose}</span>
+                      <span className="mt-3 block text-xs uppercase tracking-wider text-cyan-200">
+                        {profile.traits.join(" · ")}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <fieldset className="grid gap-3">
+              <legend className="font-display uppercase">4. Choose your seasonal card edition</legend>
+              <p className="text-sm leading-6 text-zinc-300">
+                Both editions carry the same permanent LIEN-ID, role, GLB balance, season
+                points, and lifetime points. The edition changes presentation only.
+              </p>
+              <div className="grid gap-3 md:grid-cols-2">
+                <button
+                  type="button"
+                  aria-pressed={edition === "standard"}
+                  onClick={() => setEdition("standard")}
+                  className={`clip-hud border p-5 text-left ${
+                    edition === "standard"
+                      ? "border-lime-300 bg-lime-400/10"
+                      : "border-white/20 bg-black/60"
+                  }`}
+                >
+                  <span className="font-display text-xl font-black uppercase text-lime-200">
+                    Standard Edition
+                  </span>
+                  <span className="mt-2 block text-sm text-zinc-300">
+                    Matte black frame, neon circuitry, and the official seasonal design.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={edition === "holographic"}
+                  onClick={() => setEdition("holographic")}
+                  className={`clip-hud border p-5 text-left ${
+                    edition === "holographic"
+                      ? "border-fuchsia-300 bg-fuchsia-400/10"
+                      : "border-white/20 bg-black/60"
+                  }`}
+                >
+                  <span className="font-display text-xl font-black uppercase text-fuchsia-200">
+                    Holographic Edition
+                  </span>
+                  <span className="mt-2 block text-sm text-zinc-300">
+                    Prismatic foil, metallic framing, and a holographic authenticity seal.
+                  </span>
+                </button>
+              </div>
+            </fieldset>
+            <div className="border-l-2 border-lime-300 bg-black/55 p-4">
+              <p className="font-display text-xl font-black uppercase text-lime-200">
+                {selectedRole.title}
+              </p>
+              <p className="mt-2 leading-6 text-zinc-200">{selectedRole.purpose}</p>
+              <p className="mt-3 text-sm leading-6 text-amber-100">
+                <span className="font-display uppercase">Your charge:</span>{" "}
+                {selectedRole.charge}
+              </p>
+              <p className="mt-3 text-xs uppercase tracking-wider text-zinc-400">
+                Insignia: {selectedRole.insignia} · Palette: {selectedRole.palette}
+              </p>
+            </div>
           </div>
-          <button className="clip-hud mt-5 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={() => setStep(2)} disabled={!humanName.trim()}>
-            Continue
+          <button className="clip-hud mt-5 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200 disabled:opacity-40" onClick={() => setStep(2)} disabled={!humanName.trim() || !portrait || !permanentIdentity || !sessionId}>
+            Continue with {edition === "holographic" ? "Holographic" : "Standard"} Card
           </button>
         </HudPanel>
       ) : null}
       {step === 2 ? (
         <HudPanel title="LIENification" accent="#39FF14">
+          <div className="mb-4 border border-lime-300/40 bg-lime-400/5 p-4">
+            <p className={`font-display uppercase ${edition === "holographic" ? "text-fuchsia-200" : "text-lime-200"}`}>
+              {edition === "holographic" ? "Holographic" : "Standard"} edition selected
+            </p>
+            <p className="mt-2 text-sm text-zinc-300">
+              This edition will be applied only to this generated seasonal card. You can go
+              back and select the other edition before generating.
+            </p>
+          </div>
           <label className="grid gap-2">
-            <span className="font-display uppercase">Portrait upload</span>
+            <span className="font-display uppercase">Portrait attached · replace if needed</span>
             <input className="border border-lime-400/30 bg-black/70 p-3" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => updatePortrait(event.target.files?.[0] || null)} />
           </label>
           {portraitPreview ? (
@@ -194,7 +480,7 @@ export function BecomeLienWizard() {
                   <li>Use a clear face photo from shoulders up.</li>
                   <li>Keep eyes, jawline, hairline, and expression visible.</li>
                   <li>Avoid heavy filters, sunglasses, masks, and dark shadows.</li>
-                  <li>The card will show alien traits, DEN / DONLIEN branding, and LIEN name: {lienName}.</li>
+                  <li>AI creates only your portrait. Official names, levels, IDs, and edition effects are rendered by the LIEN card system.</li>
                 </ul>
               </div>
             </div>
@@ -204,42 +490,48 @@ export function BecomeLienWizard() {
           </button>
           {paymentRequired ? (
             <button className="clip-hud ml-0 mt-3 inline-flex items-center gap-2 border border-amber-300 px-5 py-3 font-display uppercase text-amber-100 sm:ml-3" onClick={buyRetryCredit} disabled={checkoutLoading}>
-              Buy Retry Credit
+              Unlock {edition === "holographic" ? "Holographic · $7" : "Standard · $3"}
             </button>
           ) : null}
-          {portraitPreview ? (
-            <button
-              className="clip-hud ml-0 mt-3 inline-flex items-center gap-2 border border-white/30 px-5 py-3 font-display uppercase text-white sm:ml-3"
-              onClick={() => {
-                setResult({ lienId: `LIEN-${Date.now().toString(36).toUpperCase()}`, lienName, imageDataUrl: portraitPreview });
-                setStep(3);
-                setStatus("Demo review created from your uploaded portrait preview. Live generation creates a DEN / DonLien ID card.");
-              }}
-            >
-              Use Demo Preview
-            </button>
-          ) : null}
+          <p className="mt-4 text-sm leading-6 text-zinc-300">
+            Your uploaded photo is only the source image. Press Transform to create the actual
+            pixel LIEN portrait; the original photo cannot be saved as a finished LIEN-ID.
+          </p>
         </HudPanel>
       ) : null}
       {step === 3 ? (
         <HudPanel title="Review" accent="#39FF14">
-          <div className="grid gap-5 md:grid-cols-[280px_1fr]">
-            <div className="alien-core grid aspect-[4/5] place-items-center overflow-hidden border border-lime-300/40">
-              {result?.imageDataUrl ? (
-                // Data URLs returned by the protected transform route cannot be optimized by next/image.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={result.imageDataUrl} alt="Generated DEN / DonLien ID card" className="h-full w-full object-cover [image-rendering:pixelated]" />
-              ) : (
+          <div className="grid gap-5 md:grid-cols-[320px_1fr]">
+            {result?.imageDataUrl ? (
+              <LienIdentityCard
+                ref={cardRef}
+                portraitUrl={result.imageDataUrl}
+                lienId={permanentIdentity?.lienId || "LIEN-PENDING"}
+                lienName={result.lienName || lienName}
+                role={role}
+                edition={result.edition || edition}
+                level={permanentIdentity?.level || 1}
+                xp={permanentIdentity?.xp || 0}
+                glb={permanentIdentity?.glb || 0}
+                lifetimePoints={permanentIdentity?.lifetimePoints || 0}
+                seasonId={permanentIdentity?.seasonId || "S01"}
+                seasonName={permanentIdentity?.seasonName || "First Signal"}
+                seasonPoints={permanentIdentity?.seasonPoints || 0}
+              />
+            ) : (
+              <div className="alien-core grid aspect-[4/5] place-items-center border border-lime-300/40">
                 <span className="font-display text-5xl">DL</span>
-              )}
-            </div>
+              </div>
+            )}
             <div className="grid content-center gap-2">
               <p>Human designation: {humanName}</p>
               <p>LIEN designation: {result?.lienName || lienName}</p>
               <p>Role: {role}</p>
-              <p>Level 51</p>
+              <p>Edition: {result?.edition === "holographic" ? "Holographic" : "Standard"}</p>
+              <p className="text-sm text-amber-100">{selectedRole.charge}</p>
+              <p>Level 1</p>
               <p>Genesis Candidate</p>
-              <p>Unique ID: {result?.lienId || "Pending"}</p>
+              <p>Permanent ID: {permanentIdentity?.lienId || "Connect LIEN ID"}</p>
               <button className="clip-hud mt-4 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={saveIdentity}>
                 Save Identity
               </button>
@@ -248,7 +540,7 @@ export function BecomeLienWizard() {
               </button>
               {paymentRequired ? (
                 <button className="clip-hud mt-2 border border-amber-300 px-5 py-3 font-display uppercase text-amber-100" onClick={buyRetryCredit} disabled={checkoutLoading}>
-                  Buy Retry Credit
+                  Generate Another · {edition === "holographic" ? "$7" : "$3"}
                 </button>
               ) : null}
             </div>
@@ -257,16 +549,42 @@ export function BecomeLienWizard() {
       ) : null}
       {step === 4 ? (
         <HudPanel title="Activation" accent="#39FF14">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <a className="clip-hud inline-flex items-center justify-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href={result?.imageDataUrl || "#"} download="donlien-id.png">
-              <Download size={18} /> Download ID
-            </a>
-            <a className="clip-hud inline-flex items-center justify-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I joined the LIENIVERSE as ${result?.lienName || lienName}.`)}`} target="_blank" rel="noreferrer">
-              <Share2 size={18} /> Share to X
-            </a>
-            <a className="clip-hud inline-flex items-center justify-center border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href="/lienity">
-              Join LIENITY
-            </a>
+          <div className="grid gap-5 md:grid-cols-[320px_1fr]">
+            {result?.imageDataUrl && permanentIdentity ? (
+              <LienIdentityCard
+                ref={cardRef}
+                portraitUrl={result.imageDataUrl}
+                lienId={permanentIdentity.lienId}
+                lienName={result.lienName || lienName}
+                role={role}
+                edition={result.edition || edition}
+                level={permanentIdentity.level || 1}
+                xp={permanentIdentity.xp || 0}
+                glb={permanentIdentity.glb || 0}
+                lifetimePoints={permanentIdentity.lifetimePoints || 0}
+                seasonId={permanentIdentity.seasonId || "S01"}
+                seasonName={permanentIdentity.seasonName || "First Signal"}
+                seasonPoints={permanentIdentity.seasonPoints || 0}
+              />
+            ) : null}
+            <div className="grid content-center gap-3">
+              <p className="font-display text-xl font-black uppercase text-lime-200">
+                LIEN-ID activated
+              </p>
+              <p className="text-sm leading-6 text-zinc-300">
+                Your completed card is ready to download or share. On supported phones, the
+                card image and prepared message open together in the share sheet.
+              </p>
+              <button className="clip-hud inline-flex items-center justify-center gap-2 border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" onClick={downloadCard}>
+                <Download size={18} /> Download ID
+              </button>
+              <button className="clip-hud inline-flex items-center justify-center gap-2 border border-fuchsia-300 px-5 py-3 font-display uppercase text-fuchsia-200" onClick={shareToX}>
+                <Share2 size={18} /> Share to X
+              </button>
+              <a className="clip-hud inline-flex items-center justify-center border border-lime-300 px-5 py-3 font-display uppercase text-lime-200" href="/lienity">
+                Join LIENITY
+              </a>
+            </div>
           </div>
         </HudPanel>
       ) : null}

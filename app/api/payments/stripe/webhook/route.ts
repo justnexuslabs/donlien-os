@@ -15,6 +15,7 @@ type StripeCheckoutCompleted = {
       metadata?: {
         session_id?: string;
         product?: string;
+        edition?: string;
       };
     };
   };
@@ -40,12 +41,18 @@ export async function POST(request: Request) {
 
   const checkout = event.data?.object;
   const sessionId = checkout?.metadata?.session_id || checkout?.client_reference_id;
-  if (checkout?.payment_status !== "paid" || checkout.metadata?.product !== "donlien_image_retry" || !sessionId) {
+  const edition = checkout?.metadata?.edition;
+  if (
+    checkout?.payment_status !== "paid" ||
+    checkout.metadata?.product !== "pixel_lien_id_generation" ||
+    !sessionId ||
+    (edition !== "standard" && edition !== "holographic")
+  ) {
     logEvent("stripe_checkout_ignored", { checkoutId: checkout?.id, status: checkout?.payment_status });
     return NextResponse.json({ received: true });
   }
 
-  const credited = await addGenerationCredits(sessionId, 1);
+  const credited = await addGenerationCredits(sessionId, edition, 1);
   if (!credited.ok) {
     return NextResponse.json({ error: credited.error }, { status: 500 });
   }

@@ -1,17 +1,21 @@
 import OpenAI, { toFile } from "openai";
+import { Jimp, ResizeStrategy } from "jimp";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   assertSameOrigin,
   getClientKey,
   hasAdminSession,
+  isPermanentLienAdmin,
   logEvent,
-  makeLienId,
   rateLimit,
   transformFieldsSchema,
   validatePortrait,
 } from "@/lib/security";
+import { readLienSessionDetails } from "@/lib/lien-session";
 import { getGenerationAccess, recordSuccessfulGeneration } from "@/lib/generation";
-import { makeLienName, sanitizeUserText } from "@/lib/naming";
+import { makeLienName } from "@/lib/naming";
+import { roleProfiles } from "@/lib/content";
 
 export const runtime = "nodejs";
 
@@ -85,12 +89,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
 
-  const adminBypass = await hasAdminSession();
+  const lienSession = readLienSessionDetails((await cookies()).get("lien_session")?.value);
+  const adminBypass =
+    (await hasAdminSession()) || isPermanentLienAdmin(lienSession?.profile.lienId);
   const formData = await request.formData();
   const parsed = transformFieldsSchema.safeParse({
     sessionId: formData.get("sessionId"),
     humanName: formData.get("humanName"),
     role: formData.get("role"),
+    edition: formData.get("edition"),
   });
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid transform request." }, { status: 400 });
@@ -105,7 +112,7 @@ export async function POST(request: Request) {
   }
 
   if (!adminBypass) {
-    const access = await getGenerationAccess(parsed.data.sessionId);
+    const access = await getGenerationAccess(parsed.data.sessionId, parsed.data.edition);
     if (!access.ok) {
       return NextResponse.json(
         { error: access.error, paymentRequired: "paymentRequired" in access ? access.paymentRequired : false },
@@ -131,7 +138,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "OpenAI image generation is not configured yet.",
-        lienId: makeLienId(),
         lienName: makeLienName(parsed.data.humanName),
       },
       { status: 503 },
@@ -143,17 +149,25 @@ export async function POST(request: Request) {
   }
 
   const lienName = makeLienName(parsed.data.humanName);
+  const roleProfile = roleProfiles[parsed.data.role];
   const prompt = [
-    `Create a shareable DonLien / DEN movement ID card for ${sanitizeUserText(parsed.data.humanName)} using the uploaded portrait as the identity reference.`,
-    `The person's LIEN designation is ${lienName}. This LIEN name must be readable on the finished image.`,
+    "Create one shoulders-up DonLien character portrait using the uploaded photo as the identity reference.",
+    "PORTRAIT ONLY. Do not create a trading card, ID card, poster, badge, border, frame, interface, nameplate, caption, logo, seal, or document.",
+    "ABSOLUTELY NO TEXT: no letters, words, names, numbers, levels, IDs, typography, symbols that resemble writing, watermarks, signatures, or branding anywhere in the image.",
     "The uploaded person's likeness is the priority: keep their head angle, face proportions, jawline, nose bridge, mouth shape, brow shape, hairline, expression, and camera framing recognizable.",
     "Do not replace the subject with a generic alien mascot. Do not invent a new face. This must read as the uploaded person transformed into a DonLien form.",
-    "Render as crisp collectible pixel art, like a 128x128 avatar intentionally upscaled with sharp square pixels.",
+    "Render as crisp premium pixel portrait art, like a 128x128 character portrait intentionally upscaled with sharp square pixels.",
     "Apply subtle DonLien traits: controlled alien-green skin tint and glossy dark almond eyes while retaining the original face structure and expression.",
-    `Role-specific outfit: ${parsed.data.role}. Make the outfit readable and iconic at avatar scale.`,
-    `If a tie is visible, place ${lienName} vertically on the tie in glowing green letters. If the tie is too small, place ${lienName} in a bold ID-card nameplate instead.`,
-    "Make the full composition resemble an official futuristic ID card: DEN / DONLIEN branding, Level 51 signal, portrait area, readable LIEN designation, clean faction-card background, strong silhouette, high contrast.",
-    "No blur, no painterly shading, no photorealism. No earrings. No random jewelry. Do not add unrelated words.",
+    `LIEN path: ${roleProfile.title}.`,
+    `Path meaning: ${roleProfile.purpose}`,
+    `Personal charge embodied by the portrait: ${roleProfile.charge}`,
+    `Role traits to communicate through expression, posture, and design: ${roleProfile.traits.join(", ")}.`,
+    `Required role insignia: ${roleProfile.insignia}.`,
+    `Required role palette: ${roleProfile.palette}.`,
+    roleProfile.visualPrompt,
+    `Do not borrow clothing, symbols, staging, or visual motifs from any of the other LIEN paths. This must be unmistakably ${parsed.data.role}.`,
+    "Keep the composition centered and shoulders-up with safe space around the head. The website will add the official card frame and identity data afterward.",
+    "No blur, no painterly shading, no photorealism. No earrings, random jewelry, extra people, duplicate faces, text, or card elements.",
   ].join(" ");
 
   const client = new OpenAI({ apiKey: openAIConfig.apiKey });
@@ -198,7 +212,6 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error: getPublicOpenAIError(retryError),
-            lienId: makeLienId(),
             lienName: makeLienName(parsed.data.humanName),
           },
           { status: 502 },
@@ -215,7 +228,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: getPublicOpenAIError(error),
-          lienId: makeLienId(),
           lienName: makeLienName(parsed.data.humanName),
         },
         { status: 502 },
@@ -228,11 +240,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image generation did not return image data." }, { status: 502 });
   }
 
-  if (!adminBypass) await recordSuccessfulGeneration(parsed.data.sessionId);
+  const pixelImage = await Jimp.read(Buffer.from(b64, "base64"));
+  pixelImage.cover({ w: 160, h: 200 });
+  pixelImage.resize({
+    w: 800,
+    h: 1000,
+    mode: ResizeStrategy.NEAREST_NEIGHBOR,
+  });
+  const pixelPortrait = await pixelImage.getBuffer("image/png");
+
+  if (!adminBypass) {
+    await recordSuccessfulGeneration(parsed.data.sessionId, parsed.data.edition);
+  }
   logEvent("transform_complete", { role: parsed.data.role, bytes: portrait.size, model: modelUsed });
   return NextResponse.json({
-    lienId: makeLienId(),
     lienName,
-    imageDataUrl: `data:image/png;base64,${b64}`,
+    edition: parsed.data.edition,
+    imageDataUrl: `data:image/png;base64,${pixelPortrait.toString("base64")}`,
   });
 }

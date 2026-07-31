@@ -40,6 +40,12 @@ export function SiteNav() {
         </nav>
         <div className="flex items-center gap-2">
           <Link
+            href="/lien-id"
+            className="clip-hud hidden border border-cyan-300/70 px-5 py-3 font-display font-bold uppercase text-cyan-200 md:inline-flex"
+          >
+            Connect LIEN ID
+          </Link>
+          <Link
             href="/become-a-lien"
             className="clip-hud hidden border border-lime-400/70 px-5 py-3 font-display font-bold uppercase text-lime-300 shadow-[0_0_18px_rgba(57,255,20,0.24)] sm:inline-flex"
           >
@@ -59,7 +65,11 @@ export function SiteNav() {
       {open ? (
         <nav id="mobile-menu" className="border-t border-lime-400/20 bg-black/95 px-4 py-4 lg:hidden" aria-label="Mobile navigation">
           <div className="grid gap-2">
-            {[...navItems, { href: "/become-a-lien", label: "Become a LIEN" }].map((item) => (
+            {[
+              ...navItems,
+              { href: "/lien-id", label: "Connect LIEN ID" },
+              { href: "/become-a-lien", label: "Become a LIEN" },
+            ].map((item) => (
               <Link
                 className="font-display min-h-11 px-3 py-3 text-lg font-bold uppercase tracking-wide text-zinc-100 hover:bg-lime-400/10 hover:text-lime-300"
                 href={item.href}
