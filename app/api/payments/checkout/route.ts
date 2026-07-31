@@ -44,7 +44,9 @@ export async function POST(request: Request) {
     "line_items[0][price_data][unit_amount]": amount,
     "line_items[0][price_data][product_data][name]": productName,
     "line_items[0][price_data][product_data][description]":
-      "One AI-generated pixel LIEN identity preview. Saving is optional.",
+      holographic
+        ? "One AI-generated pixel LIEN identity preview with Holographic card treatment and Genesis LIENFT whitelist eligibility. Eligibility does not guarantee a mint or allocation."
+        : "One AI-generated pixel LIEN identity preview with the Standard Signal card treatment. Saving is optional.",
     "line_items[0][quantity]": "1",
     success_url: `${siteUrl.replace(/\/$/, "")}/become-a-lien?payment=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl.replace(/\/$/, "")}/become-a-lien?payment=cancelled`,

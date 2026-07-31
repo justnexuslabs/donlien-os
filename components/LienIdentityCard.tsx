@@ -63,7 +63,7 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
         {holographic ? (
           <div className="lien-card__holo-crown" aria-hidden="true">
             <span>LIEN-ID</span>
-            <small>HOLOGRAPHIC EDITION</small>
+            <small>HOLOGRAPHIC EDITION · GENESIS WHITELIST</small>
           </div>
         ) : null}
         <header className="lien-card__header">
@@ -106,6 +106,7 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
 
         <footer className="lien-card__footer">
           <span>{holographic ? "HOLOGRAPHIC" : "STANDARD"} EDITION</span>
+          {holographic ? <span className="lien-card__genesis">WHITELIST EDITION</span> : null}
           <span>{data.seasonId}</span>
         </footer>
       </article>

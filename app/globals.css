@@ -534,6 +534,17 @@ select {
   text-shadow: 0 0 10px rgba(232,121,249,.7);
 }
 
+.lien-card__genesis {
+  padding: 0.2rem 0.35rem;
+  border: 1px solid rgba(253, 224, 71, 0.75);
+  background: linear-gradient(110deg, rgba(103,232,249,.16), rgba(232,121,249,.2), rgba(253,224,71,.2));
+  color: #fef9c3;
+  font-size: 0.46rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 9px rgba(253,224,71,.55);
+}
+
 .lien-card__data > div:nth-child(3) {
   grid-column: 1 / 3;
 }

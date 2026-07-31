@@ -394,7 +394,8 @@ export function BecomeLienWizard({
               <legend className="font-display uppercase">4. Choose your seasonal card edition</legend>
               <p className="text-sm leading-6 text-zinc-300">
                 Both editions carry the same permanent LIEN-ID, role, GLB balance, season
-                points, and lifetime points. The edition changes presentation only.
+                points, lifetime points, and gameplay progression. Holographic adds a premium
+                collectible treatment and Genesis LIENFT whitelist eligibility.
               </p>
               <div className="grid gap-3 md:grid-cols-2">
                 <button
@@ -411,7 +412,8 @@ export function BecomeLienWizard({
                     Standard Edition
                   </span>
                   <span className="mt-2 block text-sm text-zinc-300">
-                    Matte black frame, neon circuitry, and the official seasonal design.
+                    Personalized pixel portrait, matte Signal frame, live stats, verified QR,
+                    seasonal archive, and downloadable sharing card. $3.
                   </span>
                 </button>
                 <button
@@ -428,11 +430,18 @@ export function BecomeLienWizard({
                     Holographic Edition
                   </span>
                   <span className="mt-2 block text-sm text-zinc-300">
-                    Prismatic foil, metallic framing, and a holographic authenticity seal.
+                    Everything in Standard, plus metallic framing, animated prismatic foil,
+                    motion-responsive light, a glowing role treatment, and Genesis LIENFT
+                    whitelist eligibility. $7.
                   </span>
                 </button>
               </div>
             </fieldset>
+            <p className="border border-cyan-300/30 bg-cyan-300/5 p-3 text-xs leading-5 text-cyan-100">
+              Both editions provide the same ecosystem progression. Holographic does not grant
+              gameplay advantages. Genesis LIENFT whitelist eligibility is verified from the
+              completed Holographic order and does not guarantee a mint, allocation, or purchase.
+            </p>
             <div className="border-l-2 border-lime-300 bg-black/55 p-4">
               <p className="font-display text-xl font-black uppercase text-lime-200">
                 {selectedRole.title}
