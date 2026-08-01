@@ -3,6 +3,7 @@ import { HologramGlobe } from "@/components/HologramGlobe";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { donLienDecks, liveFeeds, missionStats, objectives, pageImages } from "@/lib/content";
+import { StatusBadge } from "@/components/StatusBadge";
 
 export default function MissionControlPage() {
   return (
@@ -10,10 +11,11 @@ export default function MissionControlPage() {
       <section className="mx-auto grid max-w-[1600px] gap-4 px-4 pb-10 md:px-8 xl:grid-cols-[330px_1fr_330px]">
         <div className="grid gap-4">
           <HudPanel title="Mission Status" accent="#35ECFF">
+            <StatusBadge status="demo" />
             <p className="font-display text-2xl uppercase">LIENIVERSE Network</p>
-            <p className="font-display text-xl font-black text-cyan-300">Operational</p>
+            <p className="font-display text-xl font-black text-cyan-300">Interface concept</p>
             <div className="mt-5 h-2 bg-cyan-300" />
-            <p className="mt-3 text-sm uppercase text-zinc-300">Global Nodes 51 / 51</p>
+            <p className="mt-3 text-sm uppercase text-zinc-300">No live network-node metric connected</p>
           </HudPanel>
           <HudPanel title="Objectives" accent="#35ECFF">
             <ul className="space-y-3">
@@ -26,7 +28,7 @@ export default function MissionControlPage() {
             </ul>
           </HudPanel>
           <HudPanel title="Network Stability" accent="#35ECFF">
-            <p className="font-display text-5xl font-black text-cyan-200">99.8%</p>
+            <StatusBadge status="demo" /><p className="mt-3 text-sm text-zinc-300">Live stability telemetry is not connected.</p>
           </HudPanel>
         </div>
         <div className="grid content-end gap-6 pt-8">
@@ -38,10 +40,12 @@ export default function MissionControlPage() {
         </div>
         <div className="grid gap-4">
           <HudPanel title="Command Override" accent="#35ECFF">
+            <StatusBadge status="planned" />
             <p className="font-display text-3xl uppercase">Build the LIENIVERSE</p>
-            <p className="mt-4 text-cyan-200">Commander in Chief authorization active.</p>
+            <p className="mt-4 text-cyan-200">Future connected-user mission tools.</p>
           </HudPanel>
           <HudPanel title="Live Feed Grid" accent="#35ECFF">
+            <StatusBadge status="demo" />
             <div className="grid grid-cols-2 gap-3">
               {liveFeeds.map((feed) => (
                 <div className="border border-cyan-300/30 bg-cyan-300/5 p-3 text-xs uppercase" key={feed}>

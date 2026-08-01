@@ -2,6 +2,7 @@ import { DonLienStoryDeck } from "@/components/DonLienStoryDeck";
 import { HudPanel } from "@/components/HudPanel";
 import { PageFrame } from "@/components/PageFrame";
 import { archiveCategories, archiveRecords, donLienDecks, pageImages } from "@/lib/content";
+import { StatusBadge } from "@/components/StatusBadge";
 
 export default function ArchivePage() {
   return (
@@ -9,8 +10,9 @@ export default function ArchivePage() {
       <section className="mx-auto grid max-w-[1600px] gap-5 px-4 pb-10 md:px-8 xl:grid-cols-[310px_1fr_360px]">
         <div className="grid gap-4">
           <HudPanel title="Archive Status" accent="#D2A95D">
-            <p className="font-display text-3xl font-black uppercase text-lime-200">Authorized</p>
-            <p className="uppercase">Level 51 clearance</p>
+            <StatusBadge status="demo" />
+            <p className="mt-3 font-display text-3xl font-black uppercase text-lime-200">Lore archive</p>
+            <p className="uppercase">Public story excerpts—not live government records</p>
           </HudPanel>
           <HudPanel title="Recovered Files" accent="#D2A95D">
             {["Area 51", "Roswell", "First Contact", "Ancient Civilizations"].map((item) => (
@@ -38,6 +40,7 @@ export default function ArchivePage() {
       </section>
       <DonLienStoryDeck {...donLienDecks.archive} accent="#D2A95D" />
       <section className="mx-auto grid max-w-[1500px] gap-3 px-4 pb-8 md:grid-cols-5 md:px-8">
+        <p className="md:col-span-5 text-sm text-amber-100">DEMO lore entries. Dates and categories below are fictional LIENIVERSE story metadata.</p>
         {archiveRecords.map((record) => (
           <HudPanel key={record.title} accent="#D2A95D">
             <p className="font-display text-lg font-black uppercase text-amber-100">{record.title}</p>

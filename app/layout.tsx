@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DONLIEN.XYZ",
-  description: "The classified alien operating system for the LIENIVERSE.",
+  title: "DonLien.xyz · Claim Your LIEN ID",
+  description: "Create a living identity that carries your GLB, level, role, achievements, and seasonal history across the LIENIVERSE.",
   icons: {
     icon: "/images/donlien-badge.svg",
     apple: "/images/donlien-badge.svg",

@@ -190,10 +190,10 @@ export const homeValues = [
 ];
 
 export const missionStats = [
-  { label: "Clearance Level", value: "51", copy: "Authorized LIENs only", icon: LockKeyhole },
-  { label: "Active Missions", value: "07", copy: "Global operations", icon: Radar },
-  { label: "Threat Level", value: "Low", copy: "All systems secure", icon: Shield },
-  { label: "Location", value: "Mission Control", copy: "Earth orbital command", icon: Globe2 },
+  { label: "Clearance Interface", value: "Demo", copy: "Concept display", icon: LockKeyhole },
+  { label: "Active Missions", value: "Beta", copy: "First mission in development", icon: Radar },
+  { label: "Threat Telemetry", value: "Offline", copy: "No live security feed", icon: Shield },
+  { label: "Location", value: "Digital", copy: "No physical command center", icon: Globe2 },
 ];
 
 export const objectives = [
@@ -204,12 +204,12 @@ export const objectives = [
 ];
 
 export const liveFeeds = [
-  "UAP protocol ready",
-  "Satellites linked",
-  "All systems online",
-  "Network stable",
-  "Genesis vault sealed",
-  "LIENITY open",
+  "Demo: UAP protocol",
+  "Demo: satellite link",
+  "Planned: systems feed",
+  "Planned: network telemetry",
+  "Planned: Genesis status",
+  "Beta: LIENITY portal",
 ];
 
 export const embassyCards = [

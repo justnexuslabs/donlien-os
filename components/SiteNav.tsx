@@ -5,7 +5,21 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { DonLienBadgeIcon } from "./DonLienBadgeIcon";
-import { navItems } from "@/lib/content";
+
+const publicItems = [
+  { href: "/", label: "Home" },
+  { href: "/lien-id", label: "LIEN ID" },
+  { href: "/play", label: "Play" },
+  { href: "/genesis", label: "Genesis" },
+];
+
+const exploreItems = [
+  { href: "/mission-control", label: "Mission Control" },
+  { href: "/lienity", label: "LIENITY" },
+  { href: "/archive", label: "Archive" },
+  { href: "/#roadmap", label: "Roadmap" },
+  { href: "/#about-den", label: "About DEN" },
+];
 
 export function SiteNav() {
   const pathname = usePathname();
@@ -23,7 +37,7 @@ export function SiteNav() {
           </span>
         </Link>
         <nav className="hidden items-center gap-2 lg:flex" aria-label="Primary navigation">
-          {navItems.map((item) => {
+          {publicItems.map((item) => {
             const active = pathname === item.href;
             return (
               <Link
@@ -37,6 +51,12 @@ export function SiteNav() {
               </Link>
             );
           })}
+          <details className="nav-explore relative">
+            <summary className="font-display cursor-pointer list-none px-5 py-3 text-base font-bold uppercase tracking-wide text-zinc-200 hover:text-lime-300">Explore</summary>
+            <div className="absolute right-0 top-full grid min-w-56 gap-1 border border-lime-400/30 bg-black/95 p-2 shadow-2xl">
+              {exploreItems.map((item) => <Link className="px-4 py-3 font-display text-sm font-bold uppercase text-zinc-200 hover:bg-lime-400/10 hover:text-lime-200" href={item.href} key={item.href}>{item.label}</Link>)}
+            </div>
+          </details>
         </nav>
         <div className="flex items-center gap-2">
           <Link
@@ -49,7 +69,7 @@ export function SiteNav() {
             href="/become-a-lien"
             className="clip-hud hidden border border-lime-400/70 px-5 py-3 font-display font-bold uppercase text-lime-300 shadow-[0_0_18px_rgba(57,255,20,0.24)] sm:inline-flex"
           >
-            Become a LIEN
+            Get Your LIEN ID
           </Link>
           <button
             className="grid size-11 place-items-center border border-lime-400/45 text-lime-300 lg:hidden"
@@ -66,9 +86,10 @@ export function SiteNav() {
         <nav id="mobile-menu" className="border-t border-lime-400/20 bg-black/95 px-4 py-4 lg:hidden" aria-label="Mobile navigation">
           <div className="grid gap-2">
             {[
-              ...navItems,
+              ...publicItems,
+              ...exploreItems,
               { href: "/lien-id", label: "Connect LIEN ID" },
-              { href: "/become-a-lien", label: "Become a LIEN" },
+              { href: "/become-a-lien", label: "Get Your LIEN ID" },
             ].map((item) => (
               <Link
                 className="font-display min-h-11 px-3 py-3 text-lg font-bold uppercase tracking-wide text-zinc-100 hover:bg-lime-400/10 hover:text-lime-300"

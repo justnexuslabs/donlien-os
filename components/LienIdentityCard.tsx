@@ -75,7 +75,7 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
           </div>
           <div className="lien-card__seal">
             <BadgeCheck size={20} />
-            <span>VERIFIED</span>
+            <span>TELEGRAM CONNECTED</span>
           </div>
         </header>
 

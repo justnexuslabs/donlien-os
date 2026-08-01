@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { AmbientGlow } from "./AmbientGlow";
 import { SiteNav } from "./SiteNav";
+import { SiteFooter } from "./SiteFooter";
 
 type PageFrameProps = {
   image: string;
@@ -15,6 +16,7 @@ export function PageFrame({ image, accent = "#39FF14", motion = false, children 
       <AmbientGlow image={image} motion={motion} />
       <SiteNav />
       <div className="relative z-10 pt-24">{children}</div>
+      <SiteFooter />
     </main>
   );
 }

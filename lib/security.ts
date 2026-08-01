@@ -26,6 +26,7 @@ export const lienSchema = z.object({
 export const transformFieldsSchema = z.object({
   sessionId: z.string().trim().min(8).max(128),
   humanName: z.string().trim().min(1).max(80),
+  lienName: z.string().trim().min(2).max(40).regex(/^[A-Za-z0-9_-]+$/),
   role: z.enum(seasonOneRoles),
   edition: z.enum(["standard", "holographic"]).default("standard"),
 });

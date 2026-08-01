@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download, RefreshCw, Share2 } from "lucide-react";
+import { Download, RefreshCw, Share2, Signal } from "lucide-react";
 import Link from "next/link";
 import { toPng } from "html-to-image";
 import type { LienProfile } from "@/lib/lien-session";
@@ -12,6 +12,15 @@ export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }
   const [profile, setProfile] = useState(initialProfile);
   const [status, setStatus] = useState("Live profile connected");
   const cardRef = useRef<HTMLElement>(null);
+
+  function track(event: string) {
+    void fetch("/api/analytics", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ event }),
+      keepalive: true,
+    });
+  }
 
   async function refresh() {
     const response = await fetch("/api/lien/profile", { cache: "no-store" });
@@ -97,8 +106,9 @@ export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }
           Live {profile.cardEdition} card
         </p>
         <p className="mt-3 text-sm leading-6 text-zinc-300">
-          GLB, XP, level, seasonal points, and lifetime points refresh from LIEN Ascension every
-          30 seconds. The QR code always opens the signed verification record.
+          This is a living identity card. GLB, XP, level, achievements, and seasonal progress
+          refresh from LIEN Ascension every 30 seconds. The badge means Telegram Connected;
+          it does not mean legal identity verification.
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <button
@@ -120,13 +130,18 @@ export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }
             <Share2 size={17} /> Share to X
           </button>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <Link href={`/verify/${profile.lienId}`} className="clip-hud border border-cyan-300/70 px-4 py-3 text-center font-display uppercase text-cyan-100">
             Verify card
           </Link>
-          <Link href="https://t.me/LIENASCENSIONBOT/Play" className="clip-hud border border-lime-300/70 px-4 py-3 text-center font-display uppercase text-lime-100">
+          <Link onClick={() => track("first_mission_started")} href="https://t.me/LIENASCENSIONBOT/Play" className="clip-hud border border-lime-300/70 px-4 py-3 text-center font-display uppercase text-lime-100">
             Play Ascension
           </Link>
+          <Link href="/archive" className="clip-hud border border-amber-300/70 px-4 py-3 text-center font-display uppercase text-amber-100">View Archive</Link>
+        </div>
+        <div className="mt-5 border border-lime-300/35 bg-lime-300/5 p-4">
+          <p className="font-display flex items-center gap-2 font-black uppercase text-lime-200"><Signal size={18}/> First Mission: Enter the Signal</p>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">Open LIEN Ascension and complete your first in-game activity. Website-side First Signal achievement and reward claiming are planned; no extra GLB is promised by this panel yet.</p>
         </div>
         <div className="mt-5 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center text-xs uppercase tracking-wider text-zinc-300">
           <div><strong className="block text-lg text-yellow-100">{profile.inventory.length}</strong>Items</div>

@@ -75,6 +75,23 @@ export async function recordSuccessfulGeneration(
   if (error) logEvent("generation_record_update_failed", { reason: error.code });
 }
 
+export async function markGenerationAttempt(
+  sessionId: string,
+  edition: "standard" | "holographic",
+  status: "generating" | "failed",
+  errorMessage?: string,
+) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return;
+  const { data: order } = await supabase.from("purchase_orders").select("id")
+    .eq("generation_session_id", sessionId).eq("edition", edition)
+    .in("status", ["queued", "generating", "failed"]).order("created_at", { ascending: true }).limit(1).maybeSingle();
+  if (!order?.id) return;
+  const updatedAt = new Date().toISOString();
+  await supabase.from("generation_jobs").update({ status, error_message: errorMessage?.slice(0, 240) || null, updated_at: updatedAt }).eq("order_id", order.id);
+  await supabase.from("purchase_orders").update({ status, failure_message: errorMessage?.slice(0, 240) || null, updated_at: updatedAt }).eq("id", order.id);
+}
+
 export async function addGenerationCredits(
   sessionId: string,
   edition: "standard" | "holographic",

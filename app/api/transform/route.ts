@@ -13,8 +13,8 @@ import {
   validatePortrait,
 } from "@/lib/security";
 import { readLienSessionDetails } from "@/lib/lien-session";
-import { getGenerationAccess, recordSuccessfulGeneration } from "@/lib/generation";
-import { makeLienName } from "@/lib/naming";
+import { getGenerationAccess, markGenerationAttempt, recordSuccessfulGeneration } from "@/lib/generation";
+import { makeLienName, sanitizeUserText } from "@/lib/naming";
 import { roleProfiles } from "@/lib/content";
 
 export const runtime = "nodejs";
@@ -96,6 +96,7 @@ export async function POST(request: Request) {
   const parsed = transformFieldsSchema.safeParse({
     sessionId: formData.get("sessionId"),
     humanName: formData.get("humanName"),
+    lienName: formData.get("lienName"),
     role: formData.get("role"),
     edition: formData.get("edition"),
   });
@@ -148,7 +149,9 @@ export async function POST(request: Request) {
     logEvent("transform_openai_model_env_contains_key", { role: parsed.data.role });
   }
 
-  const lienName = makeLienName(parsed.data.humanName);
+  if (!adminBypass) await markGenerationAttempt(parsed.data.sessionId, parsed.data.edition, "generating");
+
+  const lienName = sanitizeUserText(parsed.data.lienName);
   const roleProfile = roleProfiles[parsed.data.role];
   const prompt = [
     "Create one shoulders-up DonLien character portrait using the uploaded photo as the identity reference.",
@@ -213,6 +216,7 @@ export async function POST(request: Request) {
           status: details.status,
           message: details.message.slice(0, 160),
         });
+        if (!adminBypass) await markGenerationAttempt(parsed.data.sessionId, parsed.data.edition, "failed", "AI generation failed after model retry.");
         return NextResponse.json(
           {
             error: getPublicOpenAIError(retryError),
@@ -229,6 +233,7 @@ export async function POST(request: Request) {
         status: details.status,
         message: details.message.slice(0, 160),
       });
+      if (!adminBypass) await markGenerationAttempt(parsed.data.sessionId, parsed.data.edition, "failed", "AI generation request failed.");
       return NextResponse.json(
         {
           error: getPublicOpenAIError(error),
@@ -241,6 +246,7 @@ export async function POST(request: Request) {
 
   const b64 = image.data?.[0]?.b64_json;
   if (!b64) {
+    if (!adminBypass) await markGenerationAttempt(parsed.data.sessionId, parsed.data.edition, "failed", "Image generation returned no portrait data.");
     return NextResponse.json({ error: "Image generation did not return image data." }, { status: 502 });
   }
 
