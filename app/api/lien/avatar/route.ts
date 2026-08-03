@@ -2,6 +2,8 @@ import { createHash, createHmac } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createLienSession, readLienSessionDetails, type LienProfile } from "@/lib/lien-session";
+import { publicRoleSchema } from "@/lib/security";
+import { applyAuthoritativeRole } from "@/lib/authoritative-role";
 
 export const runtime = "nodejs";
 
@@ -17,6 +19,17 @@ export async function POST(request: Request) {
   const body = await request.text();
   if (Buffer.byteLength(body, "utf8") > 7_000_000) {
     return NextResponse.json({ error: "Portrait is too large." }, { status: 413 });
+  }
+  try {
+    const payload = JSON.parse(body) as { role?: unknown };
+    if (!publicRoleSchema.safeParse(payload.role).success) {
+      return NextResponse.json(
+        { error: "That role cannot be selected during public card creation." },
+        { status: 403 },
+      );
+    }
+  } catch {
+    return NextResponse.json({ error: "Invalid portrait payload." }, { status: 400 });
   }
   const secret = process.env.LIEN_BRIDGE_SECRET;
   if (!secret) {
@@ -51,11 +64,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = NextResponse.json({ saved: true, profile: data.profile });
+  const profile = await applyAuthoritativeRole(data.profile);
+  const result = NextResponse.json({ saved: true, profile });
   result.cookies.set(
     "lien_session",
     createLienSession(
-      data.profile,
+      profile,
       session.userId
         ? { userId: session.userId, legacyPlayerId: session.legacyPlayerId }
         : session.legacyPlayerId,

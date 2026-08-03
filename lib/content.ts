@@ -26,8 +26,8 @@ export const navItems = [
 ];
 
 // Keep legacy roles readable so archived cards never change. Only seasonOneRoles are selectable now.
-export const roles = ["Builder", "Strategist", "Diplomat", "Creator", "Explorer", "Guardian"] as const;
-export const seasonOneRoles = ["Guardian", "Strategist", "Builder", "Creator"] as const;
+export const roles = ["Builder", "Strategist", "Diplomat", "Creator", "Explorer", "Guardian", "DEN Guardian"] as const;
+export const seasonOneRoles = ["Builder", "Creator", "Strategist"] as const;
 
 export const seasonOneRoleVersion = "s01.v1" as const;
 
@@ -133,6 +133,23 @@ export const roleProfiles = {
     poseDirection: "grounded, strong, vigilant protective stance",
     visualPrompt:
       "Depict a LIEN protector in streamlined ceremonial armor with a living-shield star insignia, restrained energy barriers, and strong protective geometry. Use a grounded vigilant pose before a secure LIEN gateway. The silhouette must communicate stewardship, discipline, compassion, and formidable protection without aggression.",
+  },
+  "DEN Guardian": {
+    id: "guardian",
+    version: "s01.admin.v1",
+    title: "DEN Guardian · Shield of the Ecosystem",
+    purpose: "Protects the ecosystem through trusted service, moderation, security, and accountable community leadership.",
+    charge: "Protect the ecosystem. Hold power accountable. Help every LIEN participate safely.",
+    traits: ["Trusted", "Disciplined", "Protective"],
+    insignia: "DEN shield around a central star",
+    palette: "obsidian, sovereign gold, and alien green",
+    emblemGlyph: "⬡",
+    outfitDirection: "official DEN ceremonial armor with protective geometry",
+    backgroundTheme: "secure DEN command gateway framed by a living energy shield",
+    signatureEffect: "official living shield, central star, and Guardian authority seal",
+    poseDirection: "grounded, vigilant, compassionate command stance",
+    visualPrompt:
+      "Depict an officially appointed DEN Guardian in premium ceremonial armor with a DEN shield-and-star insignia, restrained energy barriers, and unmistakable protective authority. Use a grounded vigilant pose before a secure DEN command gateway. The silhouette must communicate earned trust, stewardship, moderation, discipline, and protection without aggression.",
   },
 } satisfies Record<
   (typeof roles)[number],

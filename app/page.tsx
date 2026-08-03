@@ -64,7 +64,7 @@ export default function Home() {
           {[
             [UserRound, "1. Connect Telegram", "Secure your permanent LIEN identity with the account used across current DonLien experiences."],
             [Sparkles, "2. Upload Your Photo", "Upload one clear portrait for your personalized pixel LIEN character."],
-            [Star, "3. Choose Your Path", "Choose Guardian, Strategist, Builder, or Creator. Roles do not give gameplay advantages."],
+            [Star, "3. Choose Your Path", "Choose Builder, Creator, or Strategist. DEN Guardian is an earned, administrator-appointed trust role."],
             [Gamepad2, "4. Activate Your Card", "Choose Signal or Holographic, pay securely, generate your card, then enter your first mission."],
           ].map(([Icon, title, copy]) => { const StepIcon = Icon as typeof UserRound; return <article className="clarity-card" key={title as string}><StepIcon className="text-cyan-200" /><h3>{title as string}</h3><p>{copy as string}</p></article>; })}
         </div>

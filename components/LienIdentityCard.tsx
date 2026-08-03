@@ -53,7 +53,7 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
     return (
       <article
         ref={ref}
-        className={`lien-card lien-card--role-${profile.id} ${holographic ? "lien-card--holographic" : "lien-card--standard"}`}
+        className={`lien-card lien-card--role-${profile.id} ${role === "DEN Guardian" ? "lien-card--den-guardian" : ""} ${holographic ? "lien-card--holographic" : "lien-card--standard"}`}
         data-role-id={profile.id}
         data-role-version={profile.version}
         style={style}
@@ -92,6 +92,7 @@ export const LienIdentityCard = forwardRef<HTMLElement, LienCardData>(
         <div className="lien-card__identity">
           <p className="lien-card__name">{data.lienName}</p>
           <p className="lien-card__role">{role} · LEVEL {data.level}</p>
+          {role === "DEN Guardian" ? <p className="lien-card__guardian-seal">ADMINISTRATOR APPOINTED · TRUST DESIGNATION</p> : null}
           <p className="lien-card__role-description">{profile.purpose}</p>
           <p className="lien-card__id"><span>{data.lienId}</span></p>
         </div>

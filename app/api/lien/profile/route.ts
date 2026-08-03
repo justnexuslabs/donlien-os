@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createLienSession, readLienSessionDetails, type LienProfile } from "@/lib/lien-session";
+import { applyAuthoritativeRole } from "@/lib/authoritative-role";
 
 export const runtime = "nodejs";
 
@@ -33,11 +34,12 @@ export async function GET() {
     return NextResponse.json({ error: data.error || "Unable to refresh LIEN profile." }, { status: response.status });
   }
 
-  const result = NextResponse.json({ profile: data.profile });
+  const profile = await applyAuthoritativeRole(data.profile);
+  const result = NextResponse.json({ profile });
   result.cookies.set(
     "lien_session",
     createLienSession(
-      data.profile,
+      profile,
       session.userId
         ? { userId: session.userId, legacyPlayerId: session.legacyPlayerId }
         : session.legacyPlayerId,

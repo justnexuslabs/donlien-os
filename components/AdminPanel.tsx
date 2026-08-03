@@ -12,11 +12,13 @@ export function AdminPanel({ active }: AdminPanelProps) {
   const [accessCode, setAccessCode] = useState("");
   const [authed, setAuthed] = useState(active);
   const [status, setStatus] = useState("");
-  const [records, setRecords] = useState<Array<Record<string, string>>>([]);
+  const [records, setRecords] = useState<Array<Record<string, string | boolean>>>([]);
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [fromFilter, setFromFilter] = useState("");
   const [toFilter, setToFilter] = useState("");
+  const [guardianReason, setGuardianReason] = useState("");
+  const [guardianFallback, setGuardianFallback] = useState<"Builder" | "Creator" | "Strategist">("Strategist");
 
   function queryString() {
     const params = new URLSearchParams();
@@ -52,6 +54,32 @@ export function AdminPanel({ active }: AdminPanelProps) {
     }
     setRecords(payload.records || []);
     setStatus(`Loaded ${payload.records?.length || 0} records.`);
+  }
+
+  async function updateGuardian(lienId: string, assign: boolean) {
+    if (guardianReason.trim().length < 3) {
+      setStatus("Enter an audit reason before changing DEN Guardian status.");
+      return;
+    }
+    setStatus(assign ? "Assigning DEN Guardian…" : "Revoking DEN Guardian…");
+    const response = await fetch("/api/admin/liens", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lienId,
+        action: assign ? "assign_guardian" : "revoke_guardian",
+        fallbackRole: guardianFallback,
+        reason: guardianReason,
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      setStatus(payload.error || "DEN Guardian status could not be updated.");
+      return;
+    }
+    setGuardianReason("");
+    setStatus(`Role updated to ${payload.role}. The member will see it after reconnecting or refreshing their LIEN profile.`);
+    await refresh();
   }
 
   useEffect(() => {
@@ -125,17 +153,23 @@ export function AdminPanel({ active }: AdminPanelProps) {
             </a>
             <span className="self-center text-sm text-zinc-300">Abandoned = incomplete for more than 24 hours after last activity.</span>
           </div>
+          <div className="mb-5 grid gap-3 border border-amber-300/35 bg-amber-300/5 p-4 md:grid-cols-[1fr_180px]">
+            <label className="grid gap-1 text-sm"><span className="font-display uppercase text-amber-200">Guardian audit reason</span><input className="border border-amber-300/30 bg-black/70 p-2" value={guardianReason} onChange={(event) => setGuardianReason(event.target.value)} maxLength={300} placeholder="Trusted moderator appointment, contribution record, or revocation reason" /></label>
+            <label className="grid gap-1 text-sm"><span className="font-display uppercase text-amber-200">Role after revocation</span><select className="border border-amber-300/30 bg-black/70 p-2" value={guardianFallback} onChange={(event) => setGuardianFallback(event.target.value as typeof guardianFallback)}>{["Builder","Creator","Strategist"].map((item)=><option key={item}>{item}</option>)}</select></label>
+            <p className="text-xs leading-5 text-zinc-300 md:col-span-2">DEN Guardian is an appointed trust designation, not a purchasable role. Every assignment and revocation is written to the role audit log.</p>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left">
+            <table className="w-full min-w-[900px] text-left">
               <thead className="font-display uppercase text-cyan-200">
-                <tr><th className="p-2">Human</th><th className="p-2">LIEN</th><th className="p-2">Role</th><th className="p-2">Stage</th><th className="p-2">State</th><th className="p-2">Genesis</th><th className="p-2">Webhook</th><th className="p-2">Date</th></tr>
+                <tr><th className="p-2">Human</th><th className="p-2">LIEN</th><th className="p-2">Role</th><th className="p-2">Guardian control</th><th className="p-2">Stage</th><th className="p-2">State</th><th className="p-2">Genesis</th><th className="p-2">Webhook</th><th className="p-2">Date</th></tr>
               </thead>
               <tbody>
                 {records.map((record) => (
-                  <tr className="border-t border-cyan-300/20" key={record.lien_id}>
+                  <tr className="border-t border-cyan-300/20" key={String(record.lien_id)}>
                     <td className="p-2">{record.human_name}</td>
                     <td className="p-2">{record.lien_name}</td>
-                    <td className="p-2">{record.role}</td>
+                    <td className="p-2">{String(record.role)}</td>
+                    <td className="p-2">{record.role === "DEN Guardian" && record.role_locked === true ? <button className="border border-red-300/60 px-3 py-2 text-xs uppercase text-red-200" onClick={()=>void updateGuardian(String(record.lien_id),false)}>Revoke</button> : <button className="border border-amber-300/60 px-3 py-2 text-xs uppercase text-amber-100" onClick={()=>void updateGuardian(String(record.lien_id),true)}>Appoint</button>}</td>
                     <td className="p-2">{record.signup_stage}</td>
                     <td className="p-2">{record.signup_state}</td>
                     <td className="p-2">{record.genesis_status}</td>

@@ -34,13 +34,14 @@ export async function POST(request: Request) {
   }
 
   const lienId = session.profile.lienId;
-  const roleProfile = roleProfiles[parsed.data.role];
+  let roleProfile: (typeof roleProfiles)[keyof typeof roleProfiles] = roleProfiles[parsed.data.role];
+  const initialRole: string = parsed.data.role;
   const record = {
     user_id: session.userId || null,
     lien_id: lienId,
     human_name: sanitizeUserText(parsed.data.humanName),
     lien_name: sanitizeUserText(parsed.data.lienName),
-    role: parsed.data.role,
+    role: initialRole,
     role_id: roleProfile.id,
     role_version: roleProfile.version,
     portrait_url: null,
@@ -62,6 +63,18 @@ export async function POST(request: Request) {
       lienId,
       lienName: record.lien_name,
     });
+  }
+
+  const { data: existingRole } = await supabase
+    .from("liens")
+    .select("role,role_locked")
+    .eq("lien_id", lienId)
+    .maybeSingle();
+  if (existingRole?.role === "DEN Guardian" && existingRole.role_locked === true) {
+    roleProfile = roleProfiles["DEN Guardian"];
+    record.role = "DEN Guardian";
+    record.role_id = roleProfile.id;
+    record.role_version = roleProfile.version;
   }
 
   const { error } = await supabase.from("liens").upsert(record, { onConflict: "lien_id" });

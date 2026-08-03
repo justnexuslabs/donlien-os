@@ -382,6 +382,9 @@ select {
 }
 
 .lien-card--role-guardian .lien-card__portrait { --role-accent: #facc15; --role-secondary: #84cc16; }
+.lien-card--den-guardian { border-color:#facc15; box-shadow:0 0 0 2px rgba(250,204,21,.32),0 0 35px rgba(57,255,20,.28),inset 0 0 35px rgba(250,204,21,.08); }
+.lien-card--den-guardian::after { content:"DEN GUARDIAN"; position:absolute; right:1rem; top:1rem; z-index:6; border:1px solid #facc15; background:rgba(0,0,0,.82); padding:.3rem .5rem; font-family:var(--font-orbitron),sans-serif; font-size:.55rem; font-weight:900; letter-spacing:.16em; color:#fef08a; box-shadow:0 0 16px rgba(250,204,21,.35); }
+.lien-card__guardian-seal { margin-top:.35rem; color:#fef08a; font-family:var(--font-orbitron),sans-serif; font-size:.58rem; font-weight:800; letter-spacing:.12em; }
 .lien-card--role-strategist .lien-card__portrait { --role-accent: #a78bfa; --role-secondary: #22d3ee; }
 .lien-card--role-builder .lien-card__portrait { --role-accent: #22d3ee; --role-secondary: #f59e0b; }
 .lien-card--role-creator .lien-card__portrait { --role-accent: #f472b6; --role-secondary: #22d3ee; }

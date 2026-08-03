@@ -12,10 +12,11 @@ export const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as c
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 export const roleSchema = z.enum(roles);
+export const publicRoleSchema = z.enum(seasonOneRoles);
 export const lienSchema = z.object({
   humanName: z.string().trim().min(1).max(80),
   lienName: z.string().trim().min(1).max(80),
-  role: roleSchema,
+  role: publicRoleSchema,
   seasonId: z.string().trim().regex(/^S\d{2}$/).default("S01"),
   portraitUrl: z.string().url().optional(),
   portraitDataUrl: z.string().startsWith("data:image/").max(2_000_000).optional(),
@@ -27,7 +28,7 @@ export const transformFieldsSchema = z.object({
   sessionId: z.string().trim().min(8).max(128),
   humanName: z.string().trim().min(1).max(80),
   lienName: z.string().trim().min(2).max(40).regex(/^[A-Za-z0-9_-]+$/),
-  role: z.enum(seasonOneRoles),
+  role: publicRoleSchema,
   edition: z.enum(["standard", "holographic"]).default("standard"),
 });
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createLienSession, type LienProfile } from "@/lib/lien-session";
 import { resolveTelegramIdentity } from "@/lib/permanent-identity";
 import { verifyTelegramLogin } from "@/lib/telegram-login";
+import { applyAuthoritativeRole } from "@/lib/authoritative-role";
 
 export const runtime = "nodejs";
 
@@ -44,8 +45,9 @@ export async function GET(request: Request) {
       data.profile.lienName,
     );
 
+    const profile = await applyAuthoritativeRole(data.profile);
     const redirect = NextResponse.redirect(websiteUrl("/lien-id"));
-    redirect.cookies.set("lien_session", createLienSession(data.profile, identity), {
+    redirect.cookies.set("lien_session", createLienSession(profile, identity), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
