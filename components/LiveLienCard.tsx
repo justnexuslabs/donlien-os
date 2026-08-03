@@ -83,7 +83,7 @@ export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }
     <section className="grid gap-4 md:grid-cols-[minmax(300px,420px)_1fr]">
       <LienIdentityCard
         ref={cardRef}
-        portraitUrl={profile.avatarUrl}
+        portraitUrl="/api/lien/portrait"
         lienId={profile.lienId}
         lienName={profile.lienName}
         role={profile.role}
