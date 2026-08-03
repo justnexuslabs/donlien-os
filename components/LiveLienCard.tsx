@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, RefreshCw, Share2, Signal } from "lucide-react";
 import Link from "next/link";
-import { toPng } from "html-to-image";
 import type { LienProfile } from "@/lib/lien-session";
-import { shareLienCard } from "@/lib/share-lien-card";
+import { renderLienCardPng, shareLienCard } from "@/lib/share-lien-card";
 import { LienIdentityCard } from "./LienIdentityCard";
 
 export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }) {
@@ -41,11 +40,7 @@ export function LiveLienCard({ initialProfile }: { initialProfile: LienProfile }
   async function download() {
     if (!cardRef.current) return;
     setStatus("Preparing full-resolution card");
-    const dataUrl = await toPng(cardRef.current, {
-      cacheBust: true,
-      pixelRatio: 3,
-      backgroundColor: "#020403",
-    });
+    const dataUrl = await renderLienCardPng(cardRef.current);
     const link = document.createElement("a");
     link.download = `${profile.lienName}-${profile.cardEdition}-${profile.seasonId}.png`;
     link.href = dataUrl;

@@ -22,6 +22,46 @@ function shareCopy({ lienId, lienName, role, edition }: ShareLienCardInput) {
   return { text, verificationUrl };
 }
 
+async function blobToDataUrl(blob: Blob) {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Portrait could not be embedded."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function prepareCardImages(card: HTMLElement) {
+  const images = Array.from(card.querySelectorAll("img"));
+  const originals = images.map((image) => image.getAttribute("src") || "");
+
+  await Promise.all(images.map(async (image) => {
+    const source = image.currentSrc || image.src;
+    if (!source) return;
+    if (!source.startsWith("data:")) {
+      const response = await fetch(source, { cache: "no-store", credentials: "omit" });
+      if (!response.ok) throw new Error("The saved LIEN portrait could not be loaded for sharing.");
+      image.src = await blobToDataUrl(await response.blob());
+    }
+    if (typeof image.decode === "function") await image.decode();
+  }));
+
+  return () => images.forEach((image, index) => image.setAttribute("src", originals[index]));
+}
+
+export async function renderLienCardPng(card: HTMLElement, pixelRatio = 3) {
+  const restoreImages = await prepareCardImages(card);
+  try {
+    return await toPng(card, {
+      cacheBust: false,
+      pixelRatio,
+      backgroundColor: "#020403",
+    });
+  } finally {
+    restoreImages();
+  }
+}
+
 export async function shareLienCard(input: ShareLienCardInput) {
   const { text, verificationUrl } = shareCopy(input);
   let xStatus: {
@@ -56,11 +96,7 @@ export async function shareLienCard(input: ShareLienCardInput) {
 
   // toPng is already proven by the card download flow and is more reliable
   // than canvas.toBlob inside Telegram's iOS webview.
-  const dataUrl = await toPng(input.card, {
-    cacheBust: true,
-    pixelRatio: xStatus.connected ? 2 : 3,
-    backgroundColor: "#020403",
-  });
+  const dataUrl = await renderLienCardPng(input.card, xStatus.connected ? 2 : 3);
   const encoded = dataUrl.split(",")[1];
   if (!encoded) throw new Error("The LIEN-ID card image could not be prepared.");
   const bytes = Uint8Array.from(window.atob(encoded), (character) => character.charCodeAt(0));
