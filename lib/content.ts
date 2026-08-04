@@ -290,74 +290,74 @@ export const donLienDecks = {
     ],
   },
   mission: {
-    eyebrow: "Command View",
-    title: "DonLien In Mission Control",
+    eyebrow: "Mission Control",
+    title: "Your Command Briefing",
     slides: [
       {
-        title: "Operational Layer",
-        copy: "Mission Control is the dashboard side of the LIENIVERSE: systems, feeds, goals, and the command language of the project.",
+        title: "Current Mission",
+        copy: "Enter LIEN Ascension, complete five full artifact evolutions, and build the strongest core you can before containment reaches its limit.",
       },
       {
-        title: "Global Signal",
-        copy: "The page frames DonLien as a strategist watching network activity, world nodes, UAP signals, and future infrastructure.",
+        title: "Progress With Purpose",
+        copy: "Approved missions, daily activity, and qualified referrals earn GLB. Your available balance and lifetime history remain connected to your permanent LIEN ID.",
       },
       {
-        title: "Build Direction",
-        copy: "This is where the brand can grow into tools, analytics, launch controls, and public status updates for future drops.",
+        title: "One Connected Identity",
+        copy: "Your LIEN ID carries your role, level, rewards, achievements, and seasonal record across connected DonLien experiences. Game clients never decide balances on their own.",
       },
     ],
   },
   genesis: {
     eyebrow: "Genesis Protocol",
-    title: "The First DonLien Relics",
+    title: "The Founding Collection",
     slides: [
       {
-        title: "Founding Supply",
-        copy: "Genesis is the rarest layer: the first 300 LIENs, designed as the origin set and future badge of early belief.",
+        title: "300 Founding LIENFTs",
+        copy: "Genesis is a planned collection of no more than 300 founding LIENFTs. It is separate from the seasonal LIEN ID card and no public mint is active today.",
       },
       {
-        title: "Badge Logic",
-        copy: "The gold alien mark works best here as a seal: more official, more scarce, and separate from the everyday public logo.",
+        title: "Holographic Eligibility",
+        copy: "A Holographic LIEN ID may qualify its holder for whitelist consideration. Eligibility is not a guaranteed allocation, free mint, or purchase opportunity.",
       },
       {
-        title: "Drop Utility",
-        copy: "This section can later carry mint windows, eligibility, allowlist proof, rarity details, and claim status without crowding the hero.",
+        title: "Wait For The Official Signal",
+        copy: "Chain, mint price, launch window, and final terms have not been announced. Official details will appear here before any Genesis transaction is requested.",
       },
     ],
   },
   lienity: {
     eyebrow: "LIENITY",
-    title: "DonLien As Diplomat",
+    title: "How You Enter The Community",
     slides: [
       {
-        title: "Unity Layer",
-        copy: "LIENITY is the social promise: different species, builders, creators, and regions moving under one shared banner.",
+        title: "Choose Your Contribution",
+        copy: "Builders create systems, Creators shape culture, and Strategists guide the mission. Your public role describes how you contribute—not your rank or gameplay power.",
       },
       {
-        title: "Embassy Energy",
-        copy: "The brighter image style fits this page because LIENITY should feel open, civic, and welcoming instead of locked away.",
+        title: "Build One LIENIVERSE",
+        copy: "LIENITY connects people across games, art, technology, cities, and communities through one permanent LIEN ID and a shared seasonal journey.",
       },
       {
-        title: "Community Shape",
-        copy: "As the site matures, this section can hold member stories, city nodes, culture drops, and creator-led missions.",
+        title: "Earn Trust Through Action",
+        copy: "DEN Guardian is not sold or selected during onboarding. It is an administrator-appointed trust designation earned through consistent service and community leadership.",
       },
     ],
   },
   archive: {
     eyebrow: "Archive Level 51",
-    title: "DonLien In The Records",
+    title: "Your Record Across Seasons",
     slides: [
       {
-        title: "Recovered Files",
-        copy: "The Archive is the lore vault: old reports, strange signals, recovered technology, and the classified backbone of the world.",
+        title: "Seasonal Cards",
+        copy: "Every season can issue a fresh card with new seasonal XP and placement. Retired cards remain attached to the same permanent LIEN ID instead of being overwritten.",
       },
       {
-        title: "Readable Lore",
-        copy: "Longer story files belong in swipeable panels here, so visitors can move through the record without staring at one giant wall of text.",
+        title: "Permanent History",
+        copy: "Lifetime GLB earned, achievements, purchases, LIENFT ownership, and founding records remain part of the account history while seasonal progress starts fresh.",
       },
       {
-        title: "Future Drops",
-        copy: "Each later drop can unlock new entries, new evidence, and new DonLien context while keeping the visual page clean.",
+        title: "Lore And Evidence",
+        copy: "The public archive also preserves LIENIVERSE reports, recovered artifacts, strange signals, and official seasonal releases as the story expands.",
       },
     ],
   },
