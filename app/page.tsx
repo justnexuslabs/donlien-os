@@ -32,7 +32,7 @@ export default function Home() {
             <Link href="/become-a-lien" className="primary-cta">Get Your LIEN ID</Link>
             <Link href="/lien-id#live-card" className="secondary-cta">View a Live Card</Link>
           </div>
-          <p className="mt-4 text-sm text-zinc-300">Signal $3 · Holographic $7 · No crypto wallet required to begin.</p>
+          <p className="mt-4 text-sm text-zinc-300">Signal $3 · Holographic $7 · Pay securely by card or eligible cryptocurrency through Stripe.</p>
         </div>
         <div className="grid grid-cols-2 items-center gap-3 sm:gap-5" aria-label="Signal and Holographic LIEN ID examples">
           <div className="home-card-preview home-card-preview--signal">

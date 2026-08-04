@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     : "Standard Pixel LIEN-ID Generation";
   const body = new URLSearchParams({
     mode: "payment",
+    "automatic_payment_methods[enabled]": "true",
     "line_items[0][price_data][currency]": "usd",
     "line_items[0][price_data][unit_amount]": amount,
     "line_items[0][price_data][product_data][name]": productName,
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
     product: "pixel_lien_id_generation",
     edition: parsed.data.edition,
     amount: Number(amount),
+    paymentMethods: "dynamic_card_and_crypto",
   });
   return NextResponse.json({ url: payload.url });
 }
