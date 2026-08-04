@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <PageFrame image={pageImages.home} motion>
       <AnalyticsBeacon event="homepage_view" />
-      <section className="mx-auto grid min-h-[calc(100svh-6rem)] max-w-[1500px] items-center gap-10 px-4 py-10 md:px-8 lg:grid-cols-[1.05fr_.95fr]">
+      <section className="mx-auto grid max-w-[1500px] items-center gap-9 px-4 pb-14 pt-10 md:min-h-[calc(100svh-6rem)] md:px-8 lg:grid-cols-[1.05fr_.95fr]">
         <div className="max-w-3xl">
           <StatusBadge status="beta" />
           <p className="font-display mt-5 text-sm font-black uppercase tracking-[.25em] text-cyan-200">LIEN ID · Season One Early Access</p>
@@ -32,17 +32,14 @@ export default function Home() {
             <Link href="/become-a-lien" className="primary-cta">Get Your LIEN ID</Link>
             <Link href="/lien-id#live-card" className="secondary-cta">View a Live Card</Link>
           </div>
-          <p className="mt-4 text-sm text-zinc-300">Signal $3 · Holographic $7 · Pay securely by card or eligible cryptocurrency through Stripe.</p>
+          <p className="mt-4 text-sm leading-6 text-zinc-300">Signal $3 · Holographic $7 · Secure Stripe checkout by card or eligible crypto wallet.</p>
         </div>
-        <div className="grid grid-cols-2 items-center gap-3 sm:gap-5" aria-label="Signal and Holographic LIEN ID examples">
-          <div className="home-card-preview home-card-preview--signal">
-            <Image src="/images/holographic-lien-id-season-01.png" alt="Example Signal LIEN ID layout" width={520} height={850} priority />
-            <span>Signal · $3</span>
-          </div>
+        <div className="mx-auto w-full max-w-[470px]" aria-label="Holographic LIEN ID example">
           <div className="home-card-preview home-card-preview--holo">
             <Image src="/images/holographic-lien-id-season-01.png" alt="Example Holographic LIEN ID layout" width={520} height={850} priority />
-            <span>Holographic · $7</span>
+            <span>Season One · Holographic Edition</span>
           </div>
+          <p className="mt-4 text-center text-xs uppercase tracking-[.16em] text-zinc-300">Premium collectible presentation · Same progression as Signal</p>
         </div>
       </section>
 

@@ -29,10 +29,10 @@ export function SiteNav() {
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-lime-400/25 bg-black/78 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 md:px-8">
         <Link href="/" className="font-display flex items-center gap-3 text-2xl font-black tracking-wide">
-          <span className="donlien-nav-badge grid size-12 place-items-center text-lime-300" aria-hidden="true">
-            <DonLienBadgeIcon className="size-11" />
+          <span className="donlien-nav-badge grid size-10 place-items-center text-lime-300 sm:size-12" aria-hidden="true">
+            <DonLienBadgeIcon className="size-9 sm:size-11" />
           </span>
-          <span>
+          <span className="text-xl sm:text-2xl">
             DONLIEN<span className="text-lime-400">.XYZ</span>
           </span>
         </Link>
@@ -60,12 +60,6 @@ export function SiteNav() {
         </nav>
         <div className="flex items-center gap-2">
           <Link
-            href="/lien-id"
-            className="clip-hud hidden border border-cyan-300/70 px-5 py-3 font-display font-bold uppercase text-cyan-200 md:inline-flex"
-          >
-            Connect LIEN ID
-          </Link>
-          <Link
             href="/become-a-lien"
             className="clip-hud hidden border border-lime-400/70 px-5 py-3 font-display font-bold uppercase text-lime-300 shadow-[0_0_18px_rgba(57,255,20,0.24)] sm:inline-flex"
           >
@@ -88,7 +82,6 @@ export function SiteNav() {
             {[
               ...publicItems,
               ...exploreItems,
-              { href: "/lien-id", label: "Connect LIEN ID" },
               { href: "/become-a-lien", label: "Get Your LIEN ID" },
             ].map((item) => (
               <Link
