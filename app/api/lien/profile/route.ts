@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createLienSession, readLienSessionDetails, type LienProfile } from "@/lib/lien-session";
 import { applyAuthoritativeRole } from "@/lib/authoritative-role";
+import type { MissionControlSnapshot } from "@/lib/mission-control";
 
 export const runtime = "nodejs";
 
@@ -29,13 +30,13 @@ export async function GET() {
       cache: "no-store",
     },
   );
-  const data = (await response.json()) as { profile?: LienProfile; error?: string };
+  const data = (await response.json()) as { profile?: LienProfile; missionControl?: MissionControlSnapshot; error?: string };
   if (!response.ok || !data.profile) {
     return NextResponse.json({ error: data.error || "Unable to refresh LIEN profile." }, { status: response.status });
   }
 
   const profile = await applyAuthoritativeRole(data.profile);
-  const result = NextResponse.json({ profile });
+  const result = NextResponse.json({ profile, missionControl: data.missionControl || { rank: null, transactions: [] } });
   result.cookies.set(
     "lien_session",
     createLienSession(

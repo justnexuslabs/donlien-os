@@ -17,6 +17,7 @@ function websiteUrl(path: string) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const returnTo = url.searchParams.get("next") === "/mission-control" ? "/mission-control" : "/lien-id";
   try {
     const user = verifyTelegramLogin(url.searchParams);
     const secret = process.env.LIEN_BRIDGE_SECRET;
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
     );
 
     const profile = await applyAuthoritativeRole(data.profile);
-    const redirect = NextResponse.redirect(websiteUrl("/lien-id"));
+    const redirect = NextResponse.redirect(websiteUrl(returnTo));
     redirect.cookies.set("lien_session", createLienSession(profile, identity), {
       httpOnly: true,
       secure: true,

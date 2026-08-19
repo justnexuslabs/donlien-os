@@ -30,7 +30,7 @@ export default function Home() {
           <p className="font-display mt-5 text-xl font-black uppercase text-lime-300">One identity. Every game. Every season.</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link href="/become-a-lien" className="primary-cta">Get Your LIEN ID</Link>
-            <Link href="/lien-id#live-card" className="secondary-cta">View a Live Card</Link>
+            <Link href="/mission-control" className="secondary-cta">Enter LIENIVERSE</Link>
           </div>
           <p className="mt-4 text-sm leading-6 text-zinc-300">Signal $3 · Holographic $7 · Secure Stripe checkout by card or eligible crypto wallet.</p>
         </div>

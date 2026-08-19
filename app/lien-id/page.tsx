@@ -10,9 +10,9 @@ import { TelegramLienLogin } from "@/components/TelegramLienLogin";
 import { readLienSession } from "@/lib/lien-session";
 import { pageImages } from "@/lib/content";
 
-export default async function LienIdPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function LienIdPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const profile = readLienSession((await cookies()).get("lien_session")?.value);
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   return (
     <PageFrame image={pageImages.lienity} accent="#39FF14">
       <section className="content-section min-h-[70svh] content-center pt-16">
@@ -46,7 +46,7 @@ export default async function LienIdPage({ searchParams }: { searchParams: Promi
           <HudPanel title="Connect with Telegram" accent="#39FF14">
             <p className="mb-5 max-w-xl text-zinc-200">Use the same Telegram account used in LIEN Ascension. Telegram is the current authentication connection; your private Telegram numeric ID is not displayed in the browser.</p>
             {error ? <p className="mb-4 text-red-300" role="alert">{error}</p> : null}
-            <TelegramLienLogin />
+            <TelegramLienLogin returnTo={next === "/mission-control" ? next : undefined} />
           </HudPanel>
         )}
       </section>

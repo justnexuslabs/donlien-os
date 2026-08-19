@@ -30,6 +30,16 @@ export type LienProfile = {
   inventory: string[];
   equipped: Record<string, string>;
   achievements: string[];
+  streak?: number;
+  gameStats?: Record<string, {
+    rating: number;
+    played: number;
+    clears: number;
+    bestScore: number;
+    extractions: number;
+    perfectLocks: number;
+    updatedAt: string;
+  }>;
 };
 
 export type LienSession = {

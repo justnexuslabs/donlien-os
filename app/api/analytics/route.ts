@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { assertSameOrigin, getClientKey, rateLimit } from "@/lib/security";
 
-const events = new Set(["homepage_view","lien_id_cta_click","telegram_connect_started","telegram_connect_completed","photo_upload_started","photo_upload_completed","role_selected","edition_selected","checkout_started","payment_completed","generation_started","generation_completed","generation_failed","card_viewed","first_mission_started","first_mission_completed"]);
+const events = new Set(["homepage_view","lien_id_cta_click","telegram_connect_started","telegram_connect_completed","photo_upload_started","photo_upload_completed","role_selected","edition_selected","checkout_started","payment_completed","generation_started","generation_completed","generation_failed","card_viewed","first_mission_started","first_mission_completed","mission_control_opened","game_launcher_opened","game_started","mission_viewed","mission_completed","achievement_unlocked","progress_viewed","archive_viewed","reward_viewed","store_viewed"]);
 
 export async function POST(request: Request) {
   if (!(await assertSameOrigin())) return NextResponse.json({ received: false }, { status: 403 });

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-export function TelegramLienLogin() {
+export function TelegramLienLogin({ returnTo }: { returnTo?: string }) {
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!host.current) return;
@@ -13,8 +13,10 @@ export function TelegramLienLogin() {
     script.setAttribute("data-telegram-login", "LIENASCENSIONBOT");
     script.setAttribute("data-size", "large");
     script.setAttribute("data-radius", "8");
-    script.setAttribute("data-auth-url", `${window.location.origin}/api/lien/auth`);
+    const authUrl = new URL("/api/lien/auth", window.location.origin);
+    if (returnTo === "/mission-control") authUrl.searchParams.set("next", returnTo);
+    script.setAttribute("data-auth-url", authUrl.toString());
     host.current.appendChild(script);
-  }, []);
+  }, [returnTo]);
   return <div ref={host} className="min-h-12" aria-label="Connect LIEN ID with Telegram" />;
 }
