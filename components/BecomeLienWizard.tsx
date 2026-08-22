@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Check, Download, LockKeyhole, Share2, Sparkles } from "lucide-react";
 import { toPng } from "html-to-image";
 import { shareLienCard } from "@/lib/share-lien-card";
-import { makeLienName } from "@/lib/naming";
+import { makeIssuedLienNameOptions } from "@/lib/naming";
 import { roleProfiles, seasonOneRoles } from "@/lib/content";
 import { EditionComparison } from "./EditionComparison";
 import { HudPanel } from "./HudPanel";
@@ -16,7 +16,7 @@ type Result = { lienId?: string; lienName: string; imageDataUrl?: string; editio
 type PermanentIdentity = { lienId: string; lienName: string; avatarUrl: string; role: string; level: number; xp: number; glb: number; lifetimePoints: number; seasonId: string; seasonName: string; seasonPoints: number; cardEdition: "standard" | "holographic" };
 type OrderStatus = "pending_payment" | "paid" | "queued" | "generating" | "needs_review" | "completed" | "failed" | "refunded" | null;
 
-const steps = ["Connect Telegram", "Upload Photo", "Choose Name", "Choose Role", "Choose Edition", "Review & Pay", "Generate & Activate"];
+const steps = ["Connect Telegram", "Upload Photo", "Receive LIEN Name", "Choose Role", "Choose Edition", "Review & Pay", "Generate & Activate"];
 const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
 function openDraftDb() {
@@ -35,8 +35,7 @@ export function BecomeLienWizard({ permanentIdentity, freeGeneration }: { perman
   const [step, setStep] = useState(permanentIdentity ? 2 : 1);
   const [sessionId, setSessionId] = useState("");
   const [humanName, setHumanName] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [designationState, setDesignationState] = useState<"idle" | "checking" | "available" | "unavailable">("idle");
+  const [issuedNameChoice, setIssuedNameChoice] = useState("");
   const [role, setRole] = useState<(typeof seasonOneRoles)[number]>("Builder");
   const [edition, setEdition] = useState<"standard" | "holographic">("standard");
   const [portrait, setPortrait] = useState<File | null>(null);
@@ -49,7 +48,13 @@ export function BecomeLienWizard({ permanentIdentity, freeGeneration }: { perman
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const cardRef = useRef<HTMLElement>(null);
-  const lienName = useMemo(() => designation.trim() || makeLienName(humanName || "New"), [designation, humanName]);
+  const issuedNameOptions = useMemo(
+    () => makeIssuedLienNameOptions(humanName || "New", permanentIdentity?.lienId || "LIEN-0000"),
+    [humanName, permanentIdentity?.lienId],
+  );
+  const lienName = issuedNameOptions.includes(issuedNameChoice as (typeof issuedNameOptions)[number])
+    ? issuedNameChoice
+    : issuedNameOptions[0];
   const selectedRole = roleProfiles[role];
   const generationReady = freeGeneration || ["paid", "queued", "generating"].includes(orderStatus || "");
 
@@ -91,20 +96,22 @@ export function BecomeLienWizard({ permanentIdentity, freeGeneration }: { perman
     void track("photo_upload_completed");
   }
 
-  async function checkDesignation() {
-    setDesignationState("checking");
-    const response = await fetch(`/api/liens/availability?designation=${encodeURIComponent(designation)}`, { cache: "no-store" });
-    const payload = await response.json();
-    setDesignationState(response.ok && payload.available ? "available" : "unavailable");
-    setStatus(response.ok && payload.available ? "LIEN designation is available." : payload.error || "That LIEN designation is already in use.");
-  }
-
   async function startCheckout() {
     setCheckoutLoading(true); setStatus(`Opening secure ${edition === "holographic" ? "$7" : "$3"} card or crypto checkout.`); void track("checkout_started");
-    const response = await fetch("/api/payments/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId, edition }) });
-    const payload = await response.json();
-    if (!response.ok || !payload.url) { setCheckoutLoading(false); setStatus(payload.error || "Checkout is unavailable."); return; }
-    window.location.assign(payload.url);
+    try {
+      const response = await fetch("/api/payments/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId, edition }) });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.url) {
+        const supportCode = typeof payload.code === "string" ? ` (${payload.code})` : "";
+        setCheckoutLoading(false);
+        setStatus(`${payload.error || "Checkout is unavailable."}${supportCode}`);
+        return;
+      }
+      window.location.assign(payload.url);
+    } catch {
+      setCheckoutLoading(false);
+      setStatus("Checkout could not connect. Check your connection and try again. (CHECKOUT_NETWORK_ERROR)");
+    }
   }
 
   async function transform() {
@@ -120,7 +127,7 @@ export function BecomeLienWizard({ permanentIdentity, freeGeneration }: { perman
   async function saveIdentity() {
     if (!result?.imageDataUrl || !permanentIdentity) return;
     setStatus("Activating your permanent LIEN ID and seasonal card.");
-    const avatarResponse = await fetch("/api/lien/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageDataUrl: result.imageDataUrl, lienName: result.lienName, role, edition: result.edition || edition }) });
+    const avatarResponse = await fetch("/api/lien/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageDataUrl: result.imageDataUrl, humanName, lienName: result.lienName, role, edition: result.edition || edition }) });
     const avatarPayload = await avatarResponse.json(); if (!avatarResponse.ok) { setStatus(avatarPayload.error || "Card activation failed."); return; }
     const response = await fetch("/api/liens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ humanName, lienName: result.lienName, role, seasonId: permanentIdentity.seasonId || "S01", portraitDataUrl: result.imageDataUrl, genesisStatus: "candidate" }) });
     const payload = await response.json(); if (!response.ok) { setStatus(payload.error || "Identity record could not be saved."); return; }
@@ -138,7 +145,7 @@ export function BecomeLienWizard({ permanentIdentity, freeGeneration }: { perman
 
     {step===2 && <HudPanel title="Step 2 · Upload Your Photo" accent="#35ECFF"><div className="grid gap-5 md:grid-cols-[220px_1fr]"><div className="aspect-[4/5] overflow-hidden border border-cyan-300/40 bg-black/70">{portraitPreview? <img src={portraitPreview} alt="Private uploaded portrait preview" className="h-full w-full object-cover"/>:<div className="grid h-full place-items-center p-5 text-center text-zinc-500">No photo selected</div>}</div><div><ul className="grid gap-2 text-sm leading-6 text-zinc-200"><li>One person, front-facing or shoulders-up</li><li>Clear lighting; no sunglasses, masks, or heavy filters</li><li>JPG, PNG, or WEBP · maximum 8 MB</li><li>The draft stays in this browser through Stripe checkout</li></ul><label className="mt-4 flex gap-3 text-sm leading-6"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/><span>I consent to AI processing of this photo and have permission to use it. <Link className="text-cyan-200 underline" href="/ai-image-consent">Read consent terms</Link>.</span></label><label className="secondary-cta mt-4 cursor-pointer">Choose Photo<input className="sr-only" type="file" accept={allowedTypes.join(",")} onChange={e=>updatePortrait(e.target.files?.[0]||null)}/></label></div></div><button className="primary-cta mt-5 disabled:opacity-40" disabled={!portrait||!aiConsent} onClick={()=>setStep(3)}>Continue</button></HudPanel>}
 
-    {step===3 && <HudPanel title="Step 3 · Choose Your Name" accent="#39FF14"><div className="grid gap-5 md:grid-cols-2"><label className="grid gap-2"><span className="font-display uppercase">Human / display name</span><input className="form-control" value={humanName} onChange={e=>{setHumanName(e.target.value);if(!designation)setDesignation(makeLienName(e.target.value||"New"));}} maxLength={80}/><small className="text-zinc-400">How you want to be addressed.</small></label><label className="grid gap-2"><span className="font-display uppercase">LIEN designation</span><input className="form-control" value={designation} onChange={e=>{setDesignation(e.target.value);setDesignationState("idle");}} maxLength={40}/><small className="text-zinc-400">Your unique LIENIVERSE name. Letters, numbers, underscores, and hyphens.</small><button className="secondary-cta justify-self-start" onClick={checkDesignation} disabled={designationState==="checking"}>{designationState==="checking"?"Checking…":"Check Availability"}</button></label></div><button className="primary-cta mt-5 disabled:opacity-40" disabled={!humanName.trim()||designationState!=="available"} onClick={()=>setStep(4)}>Continue</button></HudPanel>}
+    {step===3 && <HudPanel title="Step 3 · Choose Your Issued LIEN Name" accent="#39FF14"><div className="grid gap-5 md:grid-cols-2"><label className="grid gap-2"><span className="font-display uppercase">Human / display name</span><input className="form-control" value={humanName} onChange={e=>setHumanName(e.target.value)} maxLength={80}/><small className="text-zinc-400">How you want to be addressed.</small></label><fieldset className="grid gap-2"><legend className="font-display uppercase">Official LIEN options</legend>{issuedNameOptions.map(option=><button type="button" key={option} aria-pressed={lienName===option} className={`edition-select text-left ${lienName===option?"selected":""}`} onClick={()=>setIssuedNameChoice(option)}>{option}</button>)}<small className="text-zinc-400">Choose one issued option. Every designation contains LIEN and is tied to your permanent ID; custom typing is disabled.</small></fieldset></div><button className="primary-cta mt-5 disabled:opacity-40" disabled={!humanName.trim()} onClick={()=>setStep(4)}>Confirm {lienName} · Continue</button></HudPanel>}
 
     {step===4 && <HudPanel title="Step 4 · Choose Your Role" accent="#39FF14"><p className="mb-5 text-sm leading-6 text-zinc-300">Role means how you contribute—not rank or gameplay power. Builder creates the ecosystem, Creator grows its culture, and Strategist guides the mission.</p><div className="grid gap-4 md:grid-cols-3">{seasonOneRoles.map(item=>{const p=roleProfiles[item];return <button type="button" aria-pressed={role===item} className={`role-choice ${role===item?"selected":""}`} onClick={()=>{setRole(item);void track("role_selected")}} key={item}><span className="role-choice__emblem">{p.emblemGlyph}</span><strong>{item}</strong><p>{p.purpose}</p><small>{p.traits.join(" · ")}</small></button>})}</div><div className="mt-5 border border-amber-300/35 bg-amber-300/5 p-4"><strong className="font-display uppercase text-amber-200">DEN Guardian · Earned, not selected</strong><p className="mt-2 text-sm leading-6 text-zinc-300">DEN Guardians protect the ecosystem through trusted service, moderation, security, and community leadership. Only authorized administrators can appoint or revoke this designation. It cannot be purchased and provides no gameplay advantage.</p></div><div className="mt-5 border-l-2 border-lime-300 p-4"><strong className="font-display uppercase text-lime-200">{selectedRole.title}</strong><p className="mt-2 text-sm text-zinc-300">{selectedRole.charge}</p></div><button className="primary-cta mt-5" onClick={()=>setStep(5)}>Continue</button></HudPanel>}
 

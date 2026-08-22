@@ -9,7 +9,7 @@ import {
   logEvent,
   rateLimit,
 } from "@/lib/security";
-import { sanitizeUserText } from "@/lib/naming";
+import { resolveIssuedLienName, sanitizeUserText } from "@/lib/naming";
 import { notifyLienWebhook } from "@/lib/webhook";
 import { roleProfiles } from "@/lib/content";
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     user_id: session.userId || null,
     lien_id: lienId,
     human_name: sanitizeUserText(parsed.data.humanName),
-    lien_name: sanitizeUserText(parsed.data.lienName),
+    lien_name: resolveIssuedLienName(parsed.data.humanName, lienId, parsed.data.lienName),
     role: initialRole,
     role_id: roleProfile.id,
     role_version: roleProfile.version,

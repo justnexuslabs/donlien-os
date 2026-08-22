@@ -3,8 +3,42 @@ import { cookies } from "next/headers";
 import { readLienSessionDetails } from "@/lib/lien-session";
 import { createPendingOrder, LIEN_EDITION_PRICES } from "@/lib/payments";
 import { assertSameOrigin, checkoutSchema, getClientKey, logEvent, rateLimit } from "@/lib/security";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
+
+type StripeErrorPayload = {
+  id?: string;
+  url?: string;
+  error?: {
+    code?: string;
+    decline_code?: string;
+    message?: string;
+    request_log_url?: string;
+    type?: string;
+  };
+};
+
+function safeStripeCheckoutError(payload: StripeErrorPayload, status: number) {
+  const type = payload.error?.type || "unknown";
+  const code = payload.error?.code || "unknown";
+  if (status === 401 || type === "invalid_request_error" && code === "api_key_expired") {
+    return {
+      code: "STRIPE_CREDENTIALS_INVALID",
+      error: "Secure checkout is temporarily unavailable. Support has been notified.",
+    };
+  }
+  if (type === "invalid_request_error") {
+    return {
+      code: "STRIPE_CHECKOUT_CONFIGURATION",
+      error: "Secure checkout needs a payment configuration update. Support has been notified.",
+    };
+  }
+  return {
+    code: "STRIPE_UNAVAILABLE",
+    error: "Stripe checkout is temporarily unavailable. Please try again shortly.",
+  };
+}
 
 export async function POST(request: Request) {
   if (!(await assertSameOrigin())) {
@@ -26,6 +60,16 @@ export async function POST(request: Request) {
   if (!secretKey) {
     logEvent("checkout_missing_stripe_config");
     return NextResponse.json({ error: "Pixel LIEN-ID checkout is not configured yet." }, { status: 503 });
+  }
+
+  // Stripe must never receive a customer before the recoverable order store is
+  // available. This avoids paid sessions that the application cannot persist.
+  if (!getSupabaseAdmin()) {
+    logEvent("checkout_missing_order_storage");
+    return NextResponse.json(
+      { code: "ORDER_STORAGE_UNAVAILABLE", error: "Secure order storage is temporarily unavailable." },
+      { status: 503 },
+    );
   }
 
   const lienSession = readLienSessionDetails((await cookies()).get("lien_session")?.value);
@@ -62,19 +106,38 @@ export async function POST(request: Request) {
     "payment_intent_data[metadata][edition]": parsed.data.edition,
   });
 
-  const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${secretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
-  const payload = (await response.json()) as { id?: string; url?: string; error?: { message?: string } };
+  let response: Response;
+  let payload: StripeErrorPayload;
+  try {
+    response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
+    payload = (await response.json()) as StripeErrorPayload;
+  } catch (error) {
+    logEvent("checkout_stripe_network_failed", {
+      reason: error instanceof Error ? error.name : "unknown",
+    });
+    return NextResponse.json(
+      { code: "STRIPE_NETWORK_ERROR", error: "Stripe could not be reached. Please try again shortly." },
+      { status: 503 },
+    );
+  }
 
   if (!response.ok || !payload.url || !payload.id) {
-    logEvent("checkout_create_failed", { status: response.status, message: payload.error?.message?.slice(0, 120) });
-    return NextResponse.json({ error: "Unable to start checkout." }, { status: 502 });
+    const safeError = safeStripeCheckoutError(payload, response.status);
+    logEvent("checkout_create_failed", {
+      status: response.status,
+      stripeType: payload.error?.type,
+      stripeCode: payload.error?.code,
+      stripeRequestUrl: payload.error?.request_log_url,
+      message: payload.error?.message?.slice(0, 120),
+    });
+    return NextResponse.json(safeError, { status: 502 });
   }
 
   const order = await createPendingOrder({

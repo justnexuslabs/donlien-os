@@ -14,7 +14,7 @@ import {
 } from "@/lib/security";
 import { readLienSessionDetails } from "@/lib/lien-session";
 import { getGenerationAccess, markGenerationAttempt, recordSuccessfulGeneration } from "@/lib/generation";
-import { makeLienName, sanitizeUserText } from "@/lib/naming";
+import { resolveIssuedLienName } from "@/lib/naming";
 import { roleProfiles } from "@/lib/content";
 
 export const runtime = "nodejs";
@@ -103,6 +103,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid transform request." }, { status: 400 });
   }
+  if (!lienSession) {
+    return NextResponse.json({ error: "Connect your Telegram LIEN ID before generation." }, { status: 401 });
+  }
+  const lienName = resolveIssuedLienName(parsed.data.humanName, lienSession.profile.lienId, parsed.data.lienName);
 
   if (!adminBypass) {
     const sessionLimited = await rateLimit(`transform_session:${parsed.data.sessionId}`, 20, 60 * 60 * 1000);
@@ -139,7 +143,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "OpenAI image generation is not configured yet.",
-        lienName: makeLienName(parsed.data.humanName),
+        lienName,
       },
       { status: 503 },
     );
@@ -151,7 +155,6 @@ export async function POST(request: Request) {
 
   if (!adminBypass) await markGenerationAttempt(parsed.data.sessionId, parsed.data.edition, "generating");
 
-  const lienName = sanitizeUserText(parsed.data.lienName);
   const roleProfile = roleProfiles[parsed.data.role];
   const prompt = [
     "Create one shoulders-up DonLien character portrait using the uploaded photo as the identity reference.",
@@ -220,7 +223,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error: getPublicOpenAIError(retryError),
-            lienName: makeLienName(parsed.data.humanName),
+            lienName,
           },
           { status: 502 },
         );
@@ -237,7 +240,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: getPublicOpenAIError(error),
-          lienName: makeLienName(parsed.data.humanName),
+          lienName,
         },
         { status: 502 },
       );

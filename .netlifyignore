@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.git/
+.netlify/
+artifacts/
+docs/
+*.log
+.env*
+!.env.example
+

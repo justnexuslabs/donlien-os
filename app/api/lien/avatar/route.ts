@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { createLienSession, readLienSessionDetails, type LienProfile } from "@/lib/lien-session";
 import { publicRoleSchema } from "@/lib/security";
 import { applyAuthoritativeRole } from "@/lib/authoritative-role";
+import { resolveIssuedLienName } from "@/lib/naming";
 
 export const runtime = "nodejs";
 
@@ -16,18 +17,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.text();
+  let body = await request.text();
   if (Buffer.byteLength(body, "utf8") > 7_000_000) {
     return NextResponse.json({ error: "Portrait is too large." }, { status: 413 });
   }
   try {
-    const payload = JSON.parse(body) as { role?: unknown };
+    const payload = JSON.parse(body) as { role?: unknown; humanName?: unknown; lienName?: unknown };
     if (!publicRoleSchema.safeParse(payload.role).success) {
       return NextResponse.json(
         { error: "That role cannot be selected during public card creation." },
         { status: 403 },
       );
     }
+    if (typeof payload.humanName !== "string" || !payload.humanName.trim()) {
+      return NextResponse.json({ error: "Display name is required." }, { status: 400 });
+    }
+    payload.lienName = resolveIssuedLienName(payload.humanName, session.profile.lienId, payload.lienName);
+    body = JSON.stringify(payload);
   } catch {
     return NextResponse.json({ error: "Invalid portrait payload." }, { status: 400 });
   }
